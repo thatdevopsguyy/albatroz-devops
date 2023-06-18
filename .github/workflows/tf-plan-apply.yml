@@ -6,10 +6,14 @@ on:
     branches:
     - main
     - master
+    paths:
+    - 'terraform/*.tf'
   pull_request:
     branches:
     - main
     - master
+    paths:
+    - 'terraform/*.tf'
 
 # Special permissions required for OIDC authentication
 permissions:
@@ -150,8 +154,6 @@ jobs:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v3
-
-
 
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
