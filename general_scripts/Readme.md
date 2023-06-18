@@ -52,14 +52,18 @@ That's it! You have successfully cloned the repository.
 
 once cloned it run below commands
 
-`cd albatroz-infra/general_scripts`
-`chmod +x *.sh`
-
- # Public Repositories
-
-git clone https://github.com/thatdevopsguyy/albatroz-infra
+```
 cd albatroz-infra/general_scripts
 chmod +x *.sh
+```
+ # Public Repositories
+
+```
+git clone https://github.com/thatdevopsguyy/albatroz-devops
+cd albatroz-devops/general_scripts
+chmod +x *.sh
+
+```
 
 # Run the Installation Script
 
@@ -114,21 +118,21 @@ Follow the steps below to deploy and configure the VM using the provided scripts
 
 Set the desired values for the variables at the top of the script file:
 
-* RESOURCE_GROUP: The name of the Azure resource group to create.
-* LOCATION: The Azure region where the resources will be deployed.
-* VNET_NAME: The name of the virtual network to create.
-* ADDRESS_SPACE_1 and ADDRESS_SPACE_2: The address spaces for the virtual network.
-* SUBNET_NAME: The name of the subnet to create within the virtual network.
-* SUBNET_PREFIX: The subnet IP range.
-* VM_SIZE: The size of the virtual machine.
-* IMAGE: The VM image to use.
-* USERNAME: The admin username for the VM.
-* SUBSCRIPTION_ID: Your Azure subscription ID.
-* NSG_NAME: The name of the network security group to create.
-* NSG_RULE_NAME: The name of the inbound rule to allow SSH traffic.
-* NSG_RULE_PRIORITY: The priority of the NSG rule.
-* IDENTITY_ROLE: The role to assign to the VM's Managed Identity.
-* SERVICE_PRINCIPAL_NAME: The name of the service principal.
+* `RESOURCE_GROUP`: The name of the Azure resource group to create.
+* `LOCATION`: The Azure region where the resources will be deployed.
+* `VNET_NAME`: The name of the virtual network to create.
+* `ADDRESS_SPACE_1` and `ADDRESS_SPACE_2`: The address spaces for the virtual network.
+* `SUBNET_NAME`: The name of the subnet to create within the virtual network.
+* `SUBNET_PREFIX`: The subnet IP range.
+* `VM_SIZE`: The size of the virtual machine.
+* `IMAGE`: The VM image to use.
+* `USERNAME`: The admin username for the VM.
+* `SUBSCRIPTION_ID`: Your Azure subscription ID.
+* `NSG_NAME`: The name of the network security group to create.
+* `NSG_RULE_NAME`: The name of the inbound rule to allow SSH traffic.
+* `NSG_RULE_PRIORITY`: The priority of the NSG rule.
+* `IDENTITY_ROLE`: The role to assign to the VM's Managed Identity.
+* `SERVICE_PRINCIPAL_NAME`: The name of the service principal.
 
 - Save the script file after modifying the variables.
 
