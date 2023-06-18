@@ -9,14 +9,16 @@ This repository contains scripts for setting up the Albatroz infrastructure. Fol
 If the repository is private, you'll need to set up an SSH key to authenticate with GitHub. Follow the steps below to generate an SSH key and add it to your GitHub account:
 
 - In the terminal or Azure Shell, generate an SSH key by running the following command:
-
-`ssh-keygen -t rsa -b 4096`
-
+```
+ssh-keygen -t rsa -b 4096
+```
 Press Enter to accept the default file location and passphrase or provide your desired options.
 
 - Once the key is generated, retrieve the content of the public key file (id_rsa.pub) by running the following command:
 
-`cat ~/.ssh/id_rsa.pub`
+```
+cat ~/.ssh/id_rsa.pub
+```
 
 - The output should display the content of your public key.
 
@@ -46,7 +48,9 @@ Change to the directory where you want to clone the repository.
 
 Run the following command to clone the repository:
 
-` git clone [repository SSH ] `
+```
+ git clone [repository SSH ] 
+``` 
  
 That's it! You have successfully cloned the repository.
 
@@ -69,16 +73,19 @@ chmod +x *.sh
 
 Execute the 1-Install_server.sh script to set up the server and the script will copy other required scripts to the newly created VM:
 
+```
 ./1-Install_server.sh
 
+```
 Once the script finishes, you will be inside the newly created server.
 
 # Install Dependencies
 
 Inside the new server, run the following command to install the necessary dependencies:
 
+```
 ./2-install-dependency.sh
-
+```
 This will install all the required dependencies for the Albatroz infrastructure.
 
 That's it! You have successfully cloned the repository, executed the installation script, and installed the required dependencies. You are now ready to proceed with the Albatroz infrastructure setup.
@@ -108,11 +115,14 @@ Follow the steps below to deploy and configure the VM using the provided scripts
 
 - Clone this repository to your local machine or Azure Shell using the following command:
 
-`git clone [repository SSH or HTTPS URL]`
-
+```
+git clone [repository SSH or HTTPS URL]
+```
 - Navigate to the repository directory:
 
-`cd [repository directory]`
+```
+cd [repository directory]
+```
 
 - Open the script file named `1-Install_server.sh` in a text editor.
 
@@ -137,7 +147,10 @@ Set the desired values for the variables at the top of the script file:
 - Save the script file after modifying the variables.
 
 - Run the script using the following command:
-`1-Install_server.sh`
+```
+./1-Install_server.sh
+
+```
 
 - The script will prompt you to enter the name for the VM. Provide a suitable name and press Enter.
 
