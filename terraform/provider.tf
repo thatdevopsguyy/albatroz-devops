@@ -12,6 +12,6 @@ terraform {
     resource_group_name  = "AlbatrozMGA"
     storage_account_name = "albatrozcicd"
     container_name       = "terraform"
-    key                  = "albatroz-infra.tfstate"
+    key                  = "albatroz-devops.tfstate"
   }
 }
