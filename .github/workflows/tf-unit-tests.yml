@@ -1,0 +1,55 @@
+name: 'Terraform Unit Tests'
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+    - 'terraform/**'
+
+jobs:
+  terraform-unit-tests:
+    name: 'Terraform Unit Tests'
+    runs-on: self-hosted
+    env:
+      TF_VAR_location: "brazilsouth"
+      TF_VAR_resource_group_name: "AlbatrozMGA"
+      TF_VAR_vm_size_staging: "Standard_B2s"
+      TF_VAR_vm_size_production: "Standard_B2ms"
+      TF_VAR_ubuntu_image: "20_04-lts-gen2"
+      TF_VAR_vnet_name: "albatroz-vnet"
+      TF_VAR_subnet_name_staging: "albatroz-subnet-staging"
+      TF_VAR_subnet_name_production: "albatroz-subnet-production"
+      TF_VAR_storage_account_name: "albatrozsa"
+      TF_VAR_storage_container_name_prod: "albatrozsc-prod"
+      TF_VAR_storage_container_name_stage: "albatrozsc-stage"
+      TF_VAR_vm_production_name: "albatroz-production"
+      TF_VAR_vm_stage_name: "albatroz-homolog"
+      TF_VAR_admin_username: "azureuser"
+      TF_VAR_admin_password: ${{ secrets.ADMIN_PASSWORD }}
+      TF_VAR_sql_server_admin_password: ${{ secrets.SQL_SERVER_ADMIN_PASSWORD }}
+      TF_VAR_sql_administrator_login: "albatrozadmin"
+      TF_VAR_container_registry_name: "albatrozcr"
+      TF_VAR_sql_server_version: "12.0"
+      TF_VAR_sql_database_size: "20"
+    
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      run: terraform init -backend=false
+      working-directory: terraform
+
+    # Validate terraform files
+    - name: Terraform Validate
+      run: terraform validate
+
+    # Checks that all Terraform configuration files adhere to a canonical format
+    - name: Terraform Format
+      run: terraform fmt -check -recursive
