@@ -17,19 +17,28 @@ on:
         default: 'all'
 
 jobs:
-  build-and-push:
+  setup:
+    # This job runs on a self-hosted runner.
+    # Ensure your self-hosted runner has Docker installed and can handle multiple concurrent jobs.
     runs-on: self-hosted
+    outputs:
+      version: ${{ steps.semver.outputs.version }}
     steps:
+      # Checking out the repository.
+      # If the workflow is triggered by repository dispatch, use the SHA from client payload.
+      # For other events, checkout the code from the triggered ref.
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
           repository: 'thatdevopsguyy/albatroz-admin-angular-node'
-          ref: ${{ github.event.client_payload.sha }}
+          ref: ${{ github.event.client_payload.sha || github.ref }}
 
+      # Calculating a semantic version based on the number of commits.
       - name: Get semantic version
         id: semver
-        run: echo "SEMVER=$(git rev-list --count HEAD).0.0" >> $GITHUB_ENV
+        run: echo "::set-output name=version::$(git rev-list --count HEAD).0.0"
 
+      # Logging in to Azure Container Registry.
       - name: Login to Azure Container Registry
         uses: docker/login-action@v1
         with:
@@ -37,19 +46,74 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Build and push Docker images
+  # The following jobs build and push Docker images.
+  # Each job represents a component of your application and runs only if the corresponding image is requested to be built.
+  # These jobs can potentially run in parallel if their dependency (setup job) is done and their 'if' condition is met.
+  # This is based on the availability of the runners.
+  # If you're using a self-hosted runner, make sure it can handle the workload of multiple concurrent jobs.
+  build_backend:
+    needs: setup
+    runs-on: self-hosted
+    if: github.event.inputs.image == 'all' || github.event.inputs.image == 'backend_code'
+    steps:
+      - name: Build and push Backend Docker image
         run: |
-          images_to_build=(${{ github.event.inputs.image }})
-          if [[ "${images_to_build[0]}" == "all" ]]; then
-            images_to_build=(backend_code frontend_code nginx nginx-proxy letsencrypt)
-          fi
-          for image_name in "${images_to_build[@]}"
-          do
-            docker build -t kishorecr.azurecr.io/albatroz-$image_name:${{ env.SEMVER }} -t kishorecr.azurecr.io/albatroz-$image_name:latest ./$image_name
-            docker push kishorecr.azurecr.io/albatroz-$image_name:${{ env.SEMVER }}
-            docker push kishorecr.azurecr.io/albatroz-$image_name:latest
-          done
+          docker build -t kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-backend_code:latest ./backend_code
+          docker push kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }}
+          docker push kishorecr.azurecr.io/albatroz-backend_code:latest
 
+  build_frontend:
+    needs: setup
+    runs-on: self-hosted
+    if: github.event.inputs.image == 'all' || github.event.inputs.image == 'frontend_code'
+    steps:
+      - name: Build and push Frontend Docker image
+        run: |
+          docker build -t kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-frontend_code:latest ./frontend_code
+          docker push kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }}
+          docker push kishorecr.azurecr.io/albatroz-frontend_code:latest
+
+  build_nginx:
+    needs: setup
+    runs-on: self-hosted
+   ```yaml
+    if: github.event.inputs.image == 'all' || github.event.inputs.image == 'nginx'
+    steps:
+      - name: Build and push Nginx Docker image
+        run: |
+          docker build -t kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-nginx:latest ./nginx
+          docker push kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }}
+          docker push kishorecr.azurecr.io/albatroz-nginx:latest
+
+  build_nginx_proxy:
+    needs: setup
+    runs-on: self-hosted
+    if: github.event.inputs.image == 'all' || github.event.inputs.image == 'nginx-proxy'
+    steps:
+      - name: Build and push Nginx Proxy Docker image
+        run: |
+          docker build -t kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-nginx-proxy:latest ./nginx-proxy
+          docker push kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }}
+          docker push kishorecr.azurecr.io/albatroz-nginx-proxy:latest
+
+  build_letsencrypt:
+    needs: setup
+    runs-on: self-hosted
+    if: github.event.inputs.image == 'all' || github.event.inputs.image == 'letsencrypt'
+    steps:
+      - name: Build and push LetsEncrypt Docker image
+        run: |
+          docker build -t kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-letsencrypt:latest ./letsencrypt
+          docker push kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }}
+          docker push kishorecr.azurecr.io/albatroz-letsencrypt:latest         
+
+  list_images:
+    # This job depends on all the build jobs and is executed after all of them are completed.
+    # It lists images from the local Docker daemon on the runner.
+    # Please note that this may not be the same as the list of images in your Azure Container Registry if other workflows or processes are also pushing images.
+    needs: [build_backend, build_frontend, build_nginx, build_nginx_proxy, build_letsencrypt]
+    runs-on: self-hosted
+    steps:
       - name: List images pushed
         run: |
           echo "Images pushed to registry:"
