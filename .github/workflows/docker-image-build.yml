@@ -22,27 +22,32 @@ on:
 
 jobs:
   setup:
-    # This job runs on a self-hosted runner.
-    # Ensure your self-hosted runner has Docker installed and can handle multiple concurrent jobs.
     runs-on: self-hosted
     outputs:
-      version: ${{ steps.semver.outputs.version }}
+      completed: ${{ steps.increment_completed.outputs.completed }}
     steps:
-      # Checking out the repository.
-      # If the workflow is triggered by repository dispatch, use the SHA from client payload.
-      # For other events, checkout the code from the triggered ref.
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
           repository: 'thatdevopsguyy/albatroz-admin-angular-node'
           ref: ${{ github.event.client_payload.sha || github.ref }}
 
-      # Calculating a semantic version based on the number of commits.
+      - name: Determine completed flag
+        id: increment_completed
+        run: echo "::set-output name=completed::$((${{ needs.setup.outputs.completed }} + 1))"
+
+      - name: Determine image tag
+        id: determine_image_tag
+        run: |
+          current_date=$(date +'%Y%m%d')
+          completed=${{ needs.setup.outputs.completed }}
+          image_tag="${current_date}.${completed}"
+          echo "::set-output name=image_tag::${image_tag}"
+
       - name: Get semantic version
         id: semver
-        run: echo "::set-output name=version::$(git rev-list --count HEAD).$(date +'%Y%m%d%H%M%S')"
+        run: echo "::set-output name=version::${{ steps.determine_image_tag.outputs.image_tag }}"
 
-      # Logging in to Azure Container Registry.
       - name: Login to Azure Container Registry
         uses: docker/login-action@v1
         with:
@@ -50,17 +55,10 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-  # The following jobs build and push Docker images.
-  # Each job represents a component of your application and runs only if the corresponding image is requested to be built.
-  # These jobs can potentially run in parallel if their dependency (setup job) is done and their 'if' condition is met.
-  # This is based on the availability of the runners.
-  # If you're using a self-hosted runner, make sure it can handle the workload of multiple concurrent jobs.
   build_backend:
     needs: setup
     runs-on: self-hosted
-    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'backend_code' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
-    outputs:
-      completed: ${{ needs.setup.outputs.completed }}
+    if: github.event.inputs.image == 'all' || github.event.inputs.image == 'backend_code' || github.event_name == 'push' || github.event_name == 'repository_dispatch'
     steps:
       - name: Login to Azure Container Registry
         uses: docker/login-action@v1
@@ -71,21 +69,20 @@ jobs:
 
       - name: Build and push Backend Docker image
         run: |
-          docker build -t kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-backend_code:latest ./backend_code
+          docker build -t kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-backend_code:${{ steps.determine_image_tag.outputs.image_tag }} -t kishorecr.azurecr.io/albatroz-backend_code:latest ./backend_code
           docker push kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }}
+          docker push kishorecr.azurecr.io/albatroz-backend_code:${{ steps.determine_image_tag.outputs.image_tag }}
           docker push kishorecr.azurecr.io/albatroz-backend_code:latest
 
       - name: List Backend Docker image
         run: |
           echo "Backend Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
+          docker images kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
 
   build_frontend:
     needs: setup
     runs-on: self-hosted
-    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'frontend_code' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
-    outputs:
-      completed: ${{ needs.setup.outputs.completed }}
+    if: github.event.inputs.image == 'all' || github.event.inputs.image == 'frontend_code' || github.event_name == 'push' || github.event_name == 'repository_dispatch'
     steps:
       - name: Login to Azure Container Registry
         uses: docker/login-action@v1
@@ -95,22 +92,20 @@ jobs:
           password: ${{ secrets.ACR_PASSWORD }} 
       - name: Build and push Frontend Docker image
         run: |
-          docker build -t kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-frontend_code:latest ./frontend_code
+          docker build -t kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-frontend_code:${{ steps.determine_image_tag.outputs.image_tag }} -t kishorecr.azurecr.io/albatroz-frontend_code:latest ./frontend_code
           docker push kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }}
+          docker push kishorecr.azurecr.io/albatroz-frontend_code:${{ steps.determine_image_tag.outputs.image_tag }}
           docker push kishorecr.azurecr.io/albatroz-frontend_code:latest
           
       - name: List Frontend Docker image
         run: |
           echo "Frontend Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
-         
+          docker images kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
 
   build_nginx:
     needs: setup
     runs-on: self-hosted
-    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'nginx' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
-    outputs:
-      completed: ${{ needs.setup.outputs.completed }}
+    if: github.event.inputs.image == 'all' || github.event.inputs.image == 'nginx' || github.event_name == 'push' || github.event_name == 'repository_dispatch'
     steps:
       - name: Login to Azure Container Registry
         uses: docker/login-action@v1
@@ -121,22 +116,20 @@ jobs:
 
       - name: Build and push Nginx Docker image
         run: |
-          docker build -t kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-nginx:latest ./nginx
+          docker build -t kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-nginx:${{ steps.determine_image_tag.outputs.image_tag }} -t kishorecr.azurecr.io/albatroz-nginx:latest ./nginx
           docker push kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }}
+          docker push kishorecr.azurecr.io/albatroz-nginx:${{ steps.determine_image_tag.outputs.image_tag }}
           docker push kishorecr.azurecr.io/albatroz-nginx:latest
 
-      - name: List Nginx  Docker image
+      - name: List Nginx Docker image
         run: |
-          echo "Nginx  Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
-           
+          echo "Nginx Docker image:"
+          docker images kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
 
   build_nginx_proxy:
     needs: setup
     runs-on: self-hosted
-    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'nginx-proxy' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
-    outputs:
-      completed: ${{ needs.setup.outputs.completed }}
+    if: github.event.inputs.image == 'all' || github.event.inputs.image == 'nginx-proxy' || github.event_name == 'push' || github.event_name == 'repository_dispatch'
     steps:
       - name: Login to Azure Container Registry
         uses: docker/login-action@v1
@@ -147,22 +140,20 @@ jobs:
 
       - name: Build and push Nginx Proxy Docker image
         run: |
-          docker build -t kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-nginx-proxy:latest ./nginx-proxy
+          docker build -t kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-nginx-proxy:${{ steps.determine_image_tag.outputs.image_tag }} -t kishorecr.azurecr.io/albatroz-nginx-proxy:latest ./nginx-proxy
           docker push kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }}
+          docker push kishorecr.azurecr.io/albatroz-nginx-proxy:${{ steps.determine_image_tag.outputs.image_tag }}
           docker push kishorecr.azurecr.io/albatroz-nginx-proxy:latest
 
       - name: List Nginx Proxy Docker image
         run: |
-          echo "Nginx Docker Proxy image:"
-          docker images kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
-          
+          echo "Nginx Proxy Docker image:"
+          docker images kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
 
   build_letsencrypt:
     needs: setup
     runs-on: self-hosted
-    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'letsencrypt' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
-    outputs:
-      completed: ${{ needs.setup.outputs.completed }}
+    if: github.event.inputs.image == 'all' || github.event.inputs.image == 'letsencrypt' || github.event_name == 'push' || github.event_name == 'repository_dispatch'
     steps:
       - name: Login to Azure Container Registry
         uses: docker/login-action@v1
@@ -173,12 +164,12 @@ jobs:
 
       - name: Build and push LetsEncrypt Docker image
         run: |
-          docker build -t kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-letsencrypt:latest ./letsencrypt
+          docker build -t kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-letsencrypt:${{ steps.determine_image_tag.outputs.image_tag }} -t kishorecr.azurecr.io/albatroz-letsencrypt:latest ./letsencrypt
           docker push kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }}
-          docker push kishorecr.azurecr.io/albatroz-letsencrypt:latest  
+          docker push kishorecr.azurecr.io/albatroz-letsencrypt:${{ steps.determine_image_tag.outputs.image_tag }}
+          docker push kishorecr.azurecr.io/albatroz-letsencrypt:latest
 
       - name: List LetsEncrypt Docker image
         run: |
           echo "LetsEncrypt Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
-           
+          docker images kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
