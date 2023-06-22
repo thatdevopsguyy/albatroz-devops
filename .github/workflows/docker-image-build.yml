@@ -102,7 +102,8 @@ jobs:
       - name: List Frontend Docker image
         run: |
           echo "Frontend Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{Repository}}:{{.Tag}}"          
+          docker images kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
+         
 
   build_nginx:
     needs: setup
@@ -127,7 +128,8 @@ jobs:
       - name: List Nginx  Docker image
         run: |
           echo "Nginx  Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} --format "repository:tag: {{Repository}}:{{.Tag}}"           
+          docker images kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
+           
 
   build_nginx_proxy:
     needs: setup
@@ -152,7 +154,8 @@ jobs:
       - name: List Nginx Proxy Docker image
         run: |
           echo "Nginx Docker Proxy image:"
-          docker images kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} --format "repository:tag: {{Repository}}:{{.Tag}}"          
+          docker images kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
+          
 
   build_letsencrypt:
     needs: setup
@@ -177,4 +180,5 @@ jobs:
       - name: List LetsEncrypt Docker image
         run: |
           echo "LetsEncrypt Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} --format "repository:tag: {{Repository}}:{{.Tag}}"           
+          docker images kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
+           
