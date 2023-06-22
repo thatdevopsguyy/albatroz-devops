@@ -32,21 +32,13 @@ jobs:
           repository: 'thatdevopsguyy/albatroz-admin-angular-node'
           ref: ${{ github.event.client_payload.sha || github.ref }}
 
-      - name: Determine completed flag
+      - name: Determine image tag
         id: increment_completed
         run: echo "::set-output name=completed::$((${{ needs.setup.outputs.completed }} + 1))"
 
-      - name: Determine image tag
-        id: determine_image_tag
-        run: |
-          current_date=$(date +'%Y%m%d')
-          completed=${{ needs.setup.outputs.completed }}
-          image_tag="${current_date}.${completed}"
-          echo "::set-output name=image_tag::${image_tag}"
-
       - name: Get semantic version
         id: semver
-        run: echo "::set-output name=version::${{ steps.determine_image_tag.outputs.image_tag }}"
+        run: echo "::set-output name=version::$(date +'%Y%m%d').${{ needs.setup.outputs.completed }}"
 
       - name: Login to Azure Container Registry
         uses: docker/login-action@v1
