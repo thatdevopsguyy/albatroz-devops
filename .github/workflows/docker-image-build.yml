@@ -10,7 +10,7 @@ on:
   pull_request:
     types:
       - opened
-      - synchronize
+      - synchronize    
   repository_dispatch:
     types: [build]
   workflow_dispatch:
@@ -58,14 +58,7 @@ jobs:
   build_backend:
     needs: setup
     runs-on: self-hosted
-    if: |
-      (github.event.inputs.image == 'all' ||
-      github.event.inputs.image == 'backend_code' ||
-      github.event_name == 'push' ||
-      github.event_name == 'build' ||
-      github.event_name == 'workflow_dispatch') &&
-      (github.event_name == 'repository_dispatch' ||
-      github.event.inputs.image == 'backend_code')
+    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'backend_code' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
     outputs:
       completed: ${{ needs.setup.outputs.completed }}
     steps:
@@ -90,14 +83,7 @@ jobs:
   build_frontend:
     needs: setup
     runs-on: self-hosted
-    if: |
-      (github.event.inputs.image == 'all' ||
-      github.event.inputs.image == 'frontend_code' ||
-      github.event_name == 'push' ||
-      github.event_name == 'build' ||
-      github.event_name == 'workflow_dispatch') &&
-      (github.event_name == 'repository_dispatch' ||
-      github.event.inputs.image == 'frontend_code')
+    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'frontend_code' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
     outputs:
       completed: ${{ needs.setup.outputs.completed }}
     steps:
@@ -116,19 +102,12 @@ jobs:
       - name: List Frontend Docker image
         run: |
           echo "Frontend Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
+          docker images kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{Repository}}:{{.Tag}}"          
 
   build_nginx:
     needs: setup
     runs-on: self-hosted
-    if: |
-      (github.event.inputs.image == 'all' ||
-      github.event.inputs.image == 'nginx' ||
-      github.event_name == 'push' ||
-      github.event_name == 'build' ||
-      github.event_name == 'workflow_dispatch') &&
-      (github.event_name == 'repository_dispatch' ||
-      github.event.inputs.image == 'nginx')
+    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'nginx' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
     outputs:
       completed: ${{ needs.setup.outputs.completed }}
     steps:
@@ -148,19 +127,12 @@ jobs:
       - name: List Nginx  Docker image
         run: |
           echo "Nginx  Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"           
+          docker images kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} --format "repository:tag: {{Repository}}:{{.Tag}}"           
 
   build_nginx_proxy:
     needs: setup
     runs-on: self-hosted
-    if: |
-      (github.event.inputs.image == 'all' ||
-      github.event.inputs.image == 'nginx-proxy' ||
-      github.event_name == 'push' ||
-      github.event_name == 'build' ||
-      github.event_name == 'workflow_dispatch') &&
-      (github.event_name == 'repository_dispatch' ||
-      github.event.inputs.image == 'nginx-proxy')
+    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'nginx-proxy' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
     outputs:
       completed: ${{ needs.setup.outputs.completed }}
     steps:
@@ -180,19 +152,12 @@ jobs:
       - name: List Nginx Proxy Docker image
         run: |
           echo "Nginx Docker Proxy image:"
-          docker images kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
+          docker images kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} --format "repository:tag: {{Repository}}:{{.Tag}}"          
 
   build_letsencrypt:
     needs: setup
     runs-on: self-hosted
-    if: |
-      (github.event.inputs.image == 'all' ||
-      github.event.inputs.image == 'letsencrypt' ||
-      github.event_name == 'push' ||
-      github.event_name == 'build' ||
-      github.event_name == 'workflow_dispatch') &&
-      (github.event_name == 'repository_dispatch' ||
-      github.event.inputs.image == 'letsencrypt')
+    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'letsencrypt' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
     outputs:
       completed: ${{ needs.setup.outputs.completed }}
     steps:
@@ -212,4 +177,4 @@ jobs:
       - name: List LetsEncrypt Docker image
         run: |
           echo "LetsEncrypt Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} --format "repository:tag: {{Repository}}:{{.Tag}}"           
