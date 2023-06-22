@@ -144,7 +144,9 @@ jobs:
     # This job depends on all the build jobs and is executed after all of them are completed.
     # It lists images from the local Docker daemon on the runner.
     # Please note that this may not be the same as the list of images in your Azure Container Registry if other workflows or processes are also pushing images.
+    needs: [build_backend, build_frontend, build_nginx, build_nginx_proxy, build_letsencrypt]
     runs-on: self-hosted
+    if: needs.build_backend.outputs.completed == 'true' || needs.build_frontend.outputs.completed == 'true' || needs.build_nginx.outputs.completed == 'true' || needs.build_nginx_proxy.outputs.completed == 'true' || needs.build_letsencrypt.outputs.completed == 'true'
     steps:
       - name: Login to Azure Container Registry
         uses: docker/login-action@v1
