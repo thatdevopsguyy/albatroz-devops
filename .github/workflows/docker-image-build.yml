@@ -3,11 +3,16 @@ name: Docker Image CI
 on:
   push:
     branches:
+      - dev
+      - stage
       - main
+      - master
+  repository_dispatch:
+    types: [build]
   workflow_dispatch:
     inputs:
       image:
-        description: 'Which image to build (all, backend, frontend, nginx, nginx-proxy, letsencrypt)'
+        description: 'Which image to build (all, backend_code, frontend_code, nginx, nginx-proxy, letsencrypt)'
         required: true
         default: 'all'
 
@@ -19,6 +24,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: 'thatdevopsguyy/albatroz-admin-angular-node'
+          ref: ${{ github.event.client_payload.sha }}
 
       - name: Get semantic version
         id: semver
@@ -35,7 +41,7 @@ jobs:
         run: |
           images_to_build=(${{ github.event.inputs.image }})
           if [[ "${images_to_build[0]}" == "all" ]]; then
-            images_to_build=(backend frontend nginx nginx-proxy letsencrypt)
+            images_to_build=(backend_code frontend_code nginx nginx-proxy letsencrypt)
           fi
           for image_name in "${images_to_build[@]}"
           do
