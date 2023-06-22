@@ -144,7 +144,6 @@ jobs:
     # This job depends on all the build jobs and is executed after all of them are completed.
     # It lists images from the local Docker daemon on the runner.
     # Please note that this may not be the same as the list of images in your Azure Container Registry if other workflows or processes are also pushing images.
-    needs: [build_backend, build_frontend, build_nginx, build_nginx_proxy, build_letsencrypt]
     runs-on: self-hosted
     steps:
       - name: Login to Azure Container Registry
@@ -153,7 +152,7 @@ jobs:
           registry: kishorecr.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }} 
-          
+
       - name: List images pushed
         run: |
           echo "Images pushed to registry:"
