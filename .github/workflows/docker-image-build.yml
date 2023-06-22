@@ -71,6 +71,11 @@ jobs:
           docker push kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }}
           docker push kishorecr.azurecr.io/albatroz-backend_code:latest
 
+      - name: List Backend Docker image
+        run: |
+          echo "Backend Docker image:"
+          docker images kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
+
   build_frontend:
     needs: setup
     runs-on: self-hosted
@@ -89,6 +94,11 @@ jobs:
           docker build -t kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-frontend_code:latest ./frontend_code
           docker push kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }}
           docker push kishorecr.azurecr.io/albatroz-frontend_code:latest
+          
+      - name: List Frontend Docker image
+        run: |
+          echo "Frontend Docker image:"
+          docker images kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
 
   build_nginx:
     needs: setup
@@ -110,6 +120,11 @@ jobs:
           docker push kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }}
           docker push kishorecr.azurecr.io/albatroz-nginx:latest
 
+      - name: List Nginx  Docker image
+        run: |
+          echo "Nginx  Docker image:"
+          docker images kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
+
   build_nginx_proxy:
     needs: setup
     runs-on: self-hosted
@@ -130,6 +145,11 @@ jobs:
           docker push kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }}
           docker push kishorecr.azurecr.io/albatroz-nginx-proxy:latest
 
+      - name: List Nginx Proxy Docker image
+        run: |
+          echo "Nginx Docker Proxy image:"
+          docker images kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
+
   build_letsencrypt:
     needs: setup
     runs-on: self-hosted
@@ -148,24 +168,10 @@ jobs:
         run: |
           docker build -t kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-letsencrypt:latest ./letsencrypt
           docker push kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }}
-          docker push kishorecr.azurecr.io/albatroz-letsencrypt:latest         
+          docker push kishorecr.azurecr.io/albatroz-letsencrypt:latest  
 
-  list_images:
-    # This job depends on all the build jobs and is executed after all of them are completed.
-    # It lists images from the local Docker daemon on the runner.
-    # Please note that this may not be the same as the list of images in your Azure Container Registry if other workflows or processes are also pushing images.
-    needs: [build_backend, build_frontend, build_nginx, build_nginx_proxy, build_letsencrypt]
-    runs-on: self-hosted
-    if: needs.build_backend.outputs.completed == 'true' || needs.build_frontend.outputs.completed == 'true' || needs.build_nginx.outputs.completed == 'true' || needs.build_nginx_proxy.outputs.completed == 'true' || needs.build_letsencrypt.outputs.completed == 'true'
-    steps:
-      - name: Login to Azure Container Registry
-        uses: docker/login-action@v1
-        with:
-          registry: kishorecr.azurecr.io
-          username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }} 
-
-      - name: List images pushed
+      - name: List LetsEncrypt Docker image
         run: |
-          echo "Images pushed to registry:"
-          docker images kishorecr.azurecr.io/albatroz-* --format "repository:tag: {{.Repository}}:{{.Tag}}" | sort
+          echo "LetsEncrypt Docker image:"
+          docker images kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
+          
