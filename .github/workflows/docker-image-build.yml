@@ -40,7 +40,7 @@ jobs:
       # Calculating a semantic version based on the number of commits.
       - name: Get semantic version
         id: semver
-        run: echo "version=$(git rev-list --count HEAD).0.0" >> $GITHUB_ENV
+        run: echo "::set-output name=version::$(git rev-list --count HEAD).0.0"
 
       # Logging in to Azure Container Registry.
       - name: Login to Azure Container Registry
