@@ -76,7 +76,6 @@ jobs:
   build_nginx:
     needs: setup
     runs-on: self-hosted
-   ```yaml
     if: github.event.inputs.image == 'all' || github.event.inputs.image == 'nginx'
     steps:
       - name: Build and push Nginx Docker image
