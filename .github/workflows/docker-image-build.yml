@@ -10,7 +10,7 @@ on:
   pull_request:
     types:
       - opened
-      - synchronize    
+      - synchronize
   repository_dispatch:
     types: [build]
   workflow_dispatch:
@@ -65,7 +65,7 @@ jobs:
         with:
           registry: kishorecr.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}  
+          password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Build and push Backend Docker image
         run: |
@@ -89,14 +89,14 @@ jobs:
         with:
           registry: kishorecr.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }} 
+          password: ${{ secrets.ACR_PASSWORD }}
       - name: Build and push Frontend Docker image
         run: |
           docker build -t kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-frontend_code:${{ steps.determine_image_tag.outputs.image_tag }} -t kishorecr.azurecr.io/albatroz-frontend_code:latest ./frontend_code
           docker push kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }}
           docker push kishorecr.azurecr.io/albatroz-frontend_code:${{ steps.determine_image_tag.outputs.image_tag }}
           docker push kishorecr.azurecr.io/albatroz-frontend_code:latest
-          
+
       - name: List Frontend Docker image
         run: |
           echo "Frontend Docker image:"
@@ -112,7 +112,7 @@ jobs:
         with:
           registry: kishorecr.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }} 
+          password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Build and push Nginx Docker image
         run: |
@@ -136,7 +136,7 @@ jobs:
         with:
           registry: kishorecr.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }} 
+          password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Build and push Nginx Proxy Docker image
         run: |
@@ -160,7 +160,7 @@ jobs:
         with:
           registry: kishorecr.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }} 
+          password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Build and push LetsEncrypt Docker image
         run: |
