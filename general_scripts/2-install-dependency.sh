@@ -36,18 +36,13 @@ echo " Az login "
 # az login --use-device-code 
 az login --identity
 
-
 # Install GitHub Actions runner
 # Create a folder
-
-RUNNER_VERSION="2.304.0"
-
 mkdir actions-runner && cd actions-runner
 
 # Download the specific runner package
 echo "Downloading GitHub Actions runner..."
 curl -o actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz -L https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz
-
 
 # Extract the runner package
 echo "Extracting runner package..."
@@ -68,7 +63,6 @@ echo
 echo "Installing GitHub Actions runner..."
 ./config.sh --url "$REPO_URL" --token "$TOKEN" --unattended
 
-
 # Create a service to keep the runner running
 echo "Creating service..."
 sudo ./svc.sh install
@@ -81,7 +75,21 @@ sudo ./svc.sh start
 echo "Checking status of the  service..."
 sudo ./svc.sh status
 
+# Install docker
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository -y "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+sudo apt-get update
+sudo apt-get install -y docker-ce
+sudo usermod -aG docker ${USER}
+
+## Install Docker Compose
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
 
 # Terraform user account auth 
-
 az login --use-device-code 
+
+#Rebooting the instance
+sudo reboot
