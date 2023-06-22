@@ -1,0 +1,74 @@
+name: Docker Image CI
+
+on:
+  repository_dispatch:
+    types: [build]
+  workflow_dispatch:
+    inputs:
+      image:
+        description: 'Docker image to build'
+        required: false
+
+jobs:
+  build-and-push:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          repository: 'thatdevopsguyy/albatroz-admin-angular-node'
+          ref: ${{ github.event.client_payload.sha }}
+
+      - name: Set timestamp
+        id: set_timestamp
+        run: echo "::set-output name=timestamp::$(date +'%Y%m%d%H%M%S')"
+
+      - name: Get tag
+        id: tag
+        run: echo "TAG=${{ steps.set_timestamp.outputs.timestamp }}" >> $GITHUB_ENV
+
+      - name: Login to Azure Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: kishorecr.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Get code changes
+        id: code_changes
+        run: echo "CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})" >> $GITHUB_ENV
+
+      - name: Build and push Backend Docker image
+        if: ${{ github.event_name == 'push' && contains(env.CHANGES, 'backend_code/') || (github.event_name == 'workflow_dispatch' && (github.event.inputs.image == 'backend' || github.event.inputs.image == 'all')) }}
+        run: |
+          docker build -t kishorecr.azurecr.io/albatroz-backend:${{ env.TAG }} ./backend_code
+          docker push kishorecr.azurecr.io/albatroz-backend:${{ env.TAG }}
+
+      - name: Build and push Frontend Docker image
+        if: ${{ github.event_name == 'push' && contains(env.CHANGES, 'frontend_code/') || (github.event_name == 'workflow_dispatch' && (github.event.inputs.image == 'frontend' || github.event.inputs.image == 'all')) }}
+        run: |
+          docker build -t kishorecr.azurecr.io/albatroz-frontend:${{ env.TAG }} ./frontend_code
+          docker push kishorecr.azurecr.io/albatroz-frontend:${{ env.TAG }}
+
+      - name: Build and push Nginx Docker image
+        if: ${{ github.event_name == 'push' && contains(env.CHANGES, 'nginx/') || (github.event_name == 'workflow_dispatch' && (github.event.inputs.image == 'nginx' || github.event.inputs.image == 'all')) }}
+        run: |
+          docker build -t kishorecr.azurecr.io/albatroz-nginx:${{ env.TAG }} ./nginx
+          docker push kishorecr.azurecr.io/albatroz-nginx:${{ env.TAG }}
+
+      - name: Build and push Nginx-proxy Docker image
+        if: ${{ github.event_name == 'push' && contains(env.CHANGES, 'nginx-proxy/') || (github.event_name == 'workflow_dispatch' && (github.event.inputs.image == 'nginx-proxy' || github.event.inputs.image == 'all')) }}
+        run: |
+          docker build -t kishorecr.azurecr.io/albatroz-nginx-proxy:${{ env.TAG }} ./nginx-proxy
+          docker push kishorecr.azurecr.io/albatroz-nginx-proxy:${{ env.TAG }}
+
+      - name: Build and push Letsencrypt Docker image
+        if: ${{ github.event_name == 'push' && contains(env.CHANGES, 'letsencrypt/') || (github.event_name == 'workflow_dispatch' && (github.event.inputs.image == 'letsencrypt' || github.event.inputs.image == 'all')) }}
+        run: |
+          docker build -t kishorecr.azurecr.io/albatroz-letsencrypt:${{ env.TAG }} ./letsencrypt
+          docker push kishorecr.azurecr.io/albatroz-letsencrypt:${{ env.TAG }}
+
+      - name: List images pushed
+        run: |
+          echo "Images pushed to registry:"
+          docker images kishorecr.azurecr.io/albatroz-* --format "repository:tag: {{.Repository}}:{{.Tag}}" | sort
