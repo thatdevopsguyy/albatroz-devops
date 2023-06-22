@@ -7,6 +7,10 @@ on:
       - stage
       - main
       - master
+  pull_request:
+    types:
+      - opened
+      - synchronize    
   repository_dispatch:
     types: [build]
   workflow_dispatch:
