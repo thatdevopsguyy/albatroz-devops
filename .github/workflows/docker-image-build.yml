@@ -10,7 +10,7 @@ on:
   pull_request:
     types:
       - opened
-      - synchronize
+      - synchronize    
   repository_dispatch:
     types: [build]
   workflow_dispatch:
@@ -65,13 +65,12 @@ jobs:
         with:
           registry: kishorecr.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
+          password: ${{ secrets.ACR_PASSWORD }}  
 
       - name: Build and push Backend Docker image
         run: |
-          docker build -t kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-backend_code:${{ steps.determine_image_tag.outputs.image_tag }} -t kishorecr.azurecr.io/albatroz-backend_code:latest ./backend_code
+          docker build -t kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-backend_code:latest ./backend_code
           docker push kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }}
-          docker push kishorecr.azurecr.io/albatroz-backend_code:${{ steps.determine_image_tag.outputs.image_tag }}
           docker push kishorecr.azurecr.io/albatroz-backend_code:latest
 
       - name: List Backend Docker image
@@ -89,14 +88,13 @@ jobs:
         with:
           registry: kishorecr.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
+          password: ${{ secrets.ACR_PASSWORD }} 
       - name: Build and push Frontend Docker image
         run: |
-          docker build -t kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-frontend_code:${{ steps.determine_image_tag.outputs.image_tag }} -t kishorecr.azurecr.io/albatroz-frontend_code:latest ./frontend_code
+          docker build -t kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-frontend_code:latest ./frontend_code
           docker push kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }}
-          docker push kishorecr.azurecr.io/albatroz-frontend_code:${{ steps.determine_image_tag.outputs.image_tag }}
           docker push kishorecr.azurecr.io/albatroz-frontend_code:latest
-
+          
       - name: List Frontend Docker image
         run: |
           echo "Frontend Docker image:"
@@ -112,13 +110,12 @@ jobs:
         with:
           registry: kishorecr.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
+          password: ${{ secrets.ACR_PASSWORD }} 
 
       - name: Build and push Nginx Docker image
         run: |
-          docker build -t kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-nginx:${{ steps.determine_image_tag.outputs.image_tag }} -t kishorecr.azurecr.io/albatroz-nginx:latest ./nginx
+          docker build -t kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-nginx:latest ./nginx
           docker push kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }}
-          docker push kishorecr.azurecr.io/albatroz-nginx:${{ steps.determine_image_tag.outputs.image_tag }}
           docker push kishorecr.azurecr.io/albatroz-nginx:latest
 
       - name: List Nginx Docker image
@@ -136,13 +133,12 @@ jobs:
         with:
           registry: kishorecr.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
+          password: ${{ secrets.ACR_PASSWORD }} 
 
       - name: Build and push Nginx Proxy Docker image
         run: |
-          docker build -t kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-nginx-proxy:${{ steps.determine_image_tag.outputs.image_tag }} -t kishorecr.azurecr.io/albatroz-nginx-proxy:latest ./nginx-proxy
+          docker build -t kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-nginx-proxy:latest ./nginx-proxy
           docker push kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }}
-          docker push kishorecr.azurecr.io/albatroz-nginx-proxy:${{ steps.determine_image_tag.outputs.image_tag }}
           docker push kishorecr.azurecr.io/albatroz-nginx-proxy:latest
 
       - name: List Nginx Proxy Docker image
@@ -160,13 +156,12 @@ jobs:
         with:
           registry: kishorecr.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
+          password: ${{ secrets.ACR_PASSWORD }} 
 
       - name: Build and push LetsEncrypt Docker image
         run: |
-          docker build -t kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-letsencrypt:${{ steps.determine_image_tag.outputs.image_tag }} -t kishorecr.azurecr.io/albatroz-letsencrypt:latest ./letsencrypt
+          docker build -t kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-letsencrypt:latest ./letsencrypt
           docker push kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }}
-          docker push kishorecr.azurecr.io/albatroz-letsencrypt:${{ steps.determine_image_tag.outputs.image_tag }}
           docker push kishorecr.azurecr.io/albatroz-letsencrypt:latest
 
       - name: List LetsEncrypt Docker image
