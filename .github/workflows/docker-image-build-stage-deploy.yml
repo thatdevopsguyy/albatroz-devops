@@ -204,6 +204,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+        with:
+          repository: 'thatdevopsguyy/albatroz-admin-angular-node'
+          ref: ${{ github.event.client_payload.sha || github.ref }}
 
       - name: Install SSH key
         uses: webfactory/ssh-agent@v0.5.3
