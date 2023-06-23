@@ -50,7 +50,7 @@ jobs:
 
       - name: Copy docker compose file to remote server
         run: |
-          scp ./docker-compose.prod.yml ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }}:~           
+          scp -o StrictHostKeyChecking=no ./docker-compose.prod.yml ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }}:~          
 
 
       - name: Deploy
