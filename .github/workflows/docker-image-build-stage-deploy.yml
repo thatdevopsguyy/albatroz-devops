@@ -212,15 +212,14 @@ jobs:
         uses: webfactory/ssh-agent@v0.5.3
         with:
           ssh-private-key: ${{ secrets.STAGE_SSH_KEY }}
-          
+
       - name: Copy docker compose file to remote server
         run: |
-          scp ./docker-compose.stage.yml ${{ secrets.STAGE_USER }}@${{ secrets.STAGE_HOST }}:~/albatroz-admin-angular-node/          
+          scp ./docker-compose.stage.yml ${{ secrets.STAGE_USER }}@${{ secrets.STAGE_HOST }}:~        
 
       - name: Deploy
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.STAGE_USER }}@${{ secrets.STAGE_HOST }} <<EOF
-            cd albatroz-admin-angular-node
             docker login kishorecr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
             docker pull kishorecr.azurecr.io/albatroz-backend_code:latest
             docker pull kishorecr.azurecr.io/albatroz-frontend_code:latest
