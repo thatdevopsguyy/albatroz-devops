@@ -46,7 +46,7 @@ resource "azurerm_virtual_machine" "vm_staging" {
   }
 
   os_profile {
-    computer_name  = var.vm_production_name
+    computer_name  = var.vm_stage_name
     admin_username = var.admin_username
     admin_password = var.admin_password # Specify the admin password for the virtual machine
   }
