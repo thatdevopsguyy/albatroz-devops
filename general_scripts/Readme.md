@@ -186,7 +186,7 @@ This script sets up an Azure CI/CD runner environment by installing necessary pa
 
 **Note:** Make sure to run the script with appropriate permissions, as some commands require sudo access. It is also recommended to review the script and customize it according to your specific requirements before running it.
 
-# GitHub Actions Runner Setup Script(3-configure-runner.sh)
+# GitHub Actions Runner Setup Script(3-configure-runner.sh) [ Indivisual Setup]
 
 This script sets up a GitHub Actions runner by downloading the runner package, configuring it, and creating a service to keep the runner running.
 
