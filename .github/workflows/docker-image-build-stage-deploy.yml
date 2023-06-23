@@ -39,7 +39,7 @@ jobs:
       - name: Login to Azure Container Registry
         uses: docker/login-action@v1
         with:
-          registry: kishorecr.azurecr.io
+          registry: albatrozcr.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
@@ -53,26 +53,26 @@ jobs:
       - name: Login to Azure Container Registry
         uses: docker/login-action@v1
         with:
-          registry: kishorecr.azurecr.io
+          registry: albatrozcr.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}  
 
       - name: Delete old Backend Docker image
         run: |
-          docker login kishorecr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
-          docker image rm kishorecr.azurecr.io/albatroz-backend_code:latest || true
+          docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+          docker image rm albatrozcr.azurecr.io/albatroz-backend_code:latest || true
 
       - name: Build and push Backend Docker image
         run: |
-          docker build -t kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-backend_code:latest ./backend_code
-          docker push kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }}
-          docker push kishorecr.azurecr.io/albatroz-backend_code:latest
+          docker build -t albatrozcr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code:latest ./backend_code
+          docker push albatrozcr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }}
+          docker push albatrozcr.azurecr.io/albatroz-backend_code:latest
 
       - name: List Backend Docker image
         run: |
           echo "Backend Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
-          docker images kishorecr.azurecr.io/albatroz-backend_code:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-backend_code:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
 
   build_frontend:
     needs: setup
@@ -84,25 +84,25 @@ jobs:
       - name: Login to Azure Container Registry
         uses: docker/login-action@v1
         with:
-          registry: kishorecr.azurecr.io
+          registry: albatrozcr.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }} 
       - name: Delete old Frontend Docker image
         run: |
-          docker login kishorecr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
-          docker image rm kishorecr.azurecr.io/albatroz-frontend_code:latest || true
+          docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+          docker image rm albatrozcr.azurecr.io/albatroz-frontend_code:latest || true
 
       - name: Build and push Frontend Docker image
         run: |
-          docker build -t kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-frontend_code:latest ./frontend_code
-          docker push kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }}
-          docker push kishorecr.azurecr.io/albatroz-frontend_code:latest
+          docker build -t albatrozcr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-frontend_code:latest ./frontend_code
+          docker push albatrozcr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }}
+          docker push albatrozcr.azurecr.io/albatroz-frontend_code:latest
           
       - name: List Frontend Docker image
         run: |
           echo "Frontend Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
-          docker images kishorecr.azurecr.io/albatroz-frontend_code:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-frontend_code:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
 
   build_nginx:
     needs: setup
@@ -114,26 +114,26 @@ jobs:
       - name: Login to Azure Container Registry
         uses: docker/login-action@v1
         with:
-          registry: kishorecr.azurecr.io
+          registry: albatrozcr.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }} 
 
       - name: Delete old Nginx Docker image
         run: |
-          docker login kishorecr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
-          docker image rm kishorecr.azurecr.io/albatroz-nginx:latest || true
+          docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+          docker image rm albatrozcr.azurecr.io/albatroz-nginx:latest || true
 
       - name: Build and push Nginx Docker image
         run: |
-          docker build -t kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-nginx:latest ./nginx
-          docker push kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }}
-          docker push kishorecr.azurecr.io/albatroz-nginx:latest
+          docker build -t albatrozcr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-nginx:latest ./nginx
+          docker push albatrozcr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }}
+          docker push albatrozcr.azurecr.io/albatroz-nginx:latest
 
       - name: List Nginx Docker image
         run: |
           echo "Nginx Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
-          docker images kishorecr.azurecr.io/albatroz-nginx:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-nginx:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
 
   build_nginx_proxy:
     needs: setup
@@ -145,26 +145,26 @@ jobs:
       - name: Login to Azure Container Registry
         uses: docker/login-action@v1
         with:
-          registry: kishorecr.azurecr.io
+          registry: albatrozcr.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }} 
 
       - name: Delete old Nginx Proxy Docker image
         run: |
-          docker login kishorecr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
-          docker image rm kishorecr.azurecr.io/albatroz-nginx-proxy:latest || true
+          docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+          docker image rm albatrozcr.azurecr.io/albatroz-nginx-proxy:latest || true
 
       - name: Build and push Nginx Proxy Docker image
         run: |
-          docker build -t kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-nginx-proxy:latest ./nginx-proxy
-          docker push kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }}
-          docker push kishorecr.azurecr.io/albatroz-nginx-proxy:latest
+          docker build -t albatrozcr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-nginx-proxy:latest ./nginx-proxy
+          docker push albatrozcr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }}
+          docker push albatrozcr.azurecr.io/albatroz-nginx-proxy:latest
 
       - name: List Nginx Proxy Docker image
         run: |
           echo "Nginx Proxy Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
-          docker images kishorecr.azurecr.io/albatroz-nginx-proxy:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-nginx-proxy:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
 
   build_letsencrypt:
     needs: setup
@@ -176,26 +176,26 @@ jobs:
       - name: Login to Azure Container Registry
         uses: docker/login-action@v1
         with:
-          registry: kishorecr.azurecr.io
+          registry: albatrozcr.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }} 
 
       - name: Delete old LetsEncrypt Docker image
         run: |
-          docker login kishorecr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
-          docker image rm kishorecr.azurecr.io/albatroz-letsencrypt:latest || true
+          docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+          docker image rm albatrozcr.azurecr.io/albatroz-letsencrypt:latest || true
 
       - name: Build and push LetsEncrypt Docker image
         run: |
-          docker build -t kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-letsencrypt:latest ./letsencrypt
-          docker push kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }}
-          docker push kishorecr.azurecr.io/albatroz-letsencrypt:latest  
+          docker build -t albatrozcr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-letsencrypt:latest ./letsencrypt
+          docker push albatrozcr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }}
+          docker push albatrozcr.azurecr.io/albatroz-letsencrypt:latest  
 
       - name: List LetsEncrypt Docker image
         run: |
           echo "LetsEncrypt Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
-          docker images kishorecr.azurecr.io/albatroz-letsencrypt:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-letsencrypt:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
 
   deploy:
     needs: [setup, build_backend, build_frontend, build_nginx, build_nginx_proxy, build_letsencrypt]
@@ -224,4 +224,4 @@ jobs:
         run: |
           ENCODED_MYSQL_ROOT_PASSWORD=$(echo -n $MYSQL_ROOT_PASSWORD | base64)
           ENCODED_MYSQL_PASSWORD=$(echo -n $MYSQL_PASSWORD | base64)
-          ssh -o StrictHostKeyChecking=no ${{ secrets.STAGE_USER }}@${{ secrets.STAGE_HOST }} "bash -c 'export MYSQL_ROOT_PASSWORD=\$(echo -n $ENCODED_MYSQL_ROOT_PASSWORD | base64 --decode); export MYSQL_PASSWORD=\$(echo -n $ENCODED_MYSQL_PASSWORD | base64 --decode); docker login kishorecr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }} && docker pull kishorecr.azurecr.io/albatroz-backend_code:latest && docker pull kishorecr.azurecr.io/albatroz-frontend_code:latest && docker pull kishorecr.azurecr.io/albatroz-nginx:latest && docker pull kishorecr.azurecr.io/albatroz-nginx-proxy:latest && docker pull kishorecr.azurecr.io/albatroz-letsencrypt:latest && docker-compose -f ~/docker-compose.stage.yml up -d --force-recreate'"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.STAGE_USER }}@${{ secrets.STAGE_HOST }} "bash -c 'export MYSQL_ROOT_PASSWORD=\$(echo -n $ENCODED_MYSQL_ROOT_PASSWORD | base64 --decode); export MYSQL_PASSWORD=\$(echo -n $ENCODED_MYSQL_PASSWORD | base64 --decode); docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }} && docker pull albatrozcr.azurecr.io/albatroz-backend_code:latest && docker pull albatrozcr.azurecr.io/albatroz-frontend_code:latest && docker pull albatrozcr.azurecr.io/albatroz-nginx:latest && docker pull albatrozcr.azurecr.io/albatroz-nginx-proxy:latest && docker pull albatrozcr.azurecr.io/albatroz-letsencrypt:latest && docker-compose -f ~/docker-compose.stage.yml up -d --force-recreate'"

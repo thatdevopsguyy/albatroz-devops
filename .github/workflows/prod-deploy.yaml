@@ -29,7 +29,7 @@ on:
         default: 'latest'
 
 env:
-  REGISTRY: kishorecr.azurecr.io
+  REGISTRY: albatrozcr.azurecr.io
   IMAGE_NAME: albatroz
 
 jobs:
