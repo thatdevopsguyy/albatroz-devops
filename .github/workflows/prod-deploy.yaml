@@ -1,0 +1,63 @@
+name: Deploy to Production
+
+on: 
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+    inputs:
+      generalVersion:
+        description: 'Version for all images (used if specific version is not provided)'
+        required: false
+        default: 'latest'
+      backendVersion:
+        description: 'Version for backend image'
+        required: false
+        default: 'latest'
+      frontendVersion:
+        description: 'Version for frontend image'
+        required: false
+        default: 'latest'
+      nginxVersion:
+        description: 'Version for nginx image'
+        required: false
+        default: 'latest'
+      nginxProxyVersion:
+        description: 'Version for nginx-proxy image'
+        required: false
+        default: 'latest'
+      letsencryptVersion:
+        description: 'Version for letsencrypt image'
+        required: false
+        default: 'latest'
+
+env:
+  REGISTRY: kishorecr.azurecr.io
+  IMAGE_NAME: albatroz
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install SSH key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.PROD_SSH_KEY }}
+
+      - name: Deploy
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} <<EOF
+            cd albatroz-admin-angular-node
+            docker login ${{ env.REGISTRY }} -u "${{ secrets.ACR_USERNAME }}" -p "${{ secrets.ACR_PASSWORD }}"
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend_code:${{ github.event.inputs.backendVersion || github.event.inputs.generalVersion }}
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend_code:${{ github.event.inputs.frontendVersion || github.event.inputs.generalVersion }}
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx:${{ github.event.inputs.nginxVersion || github.event.inputs.generalVersion }}
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-proxy:${{ github.event.inputs.nginxProxyVersion || github.event.inputs.generalVersion }}
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-letsencrypt:${{ github.event.inputs.letsencryptVersion || github.event.inputs.generalVersion }}
+            docker-compose -f docker-compose.prod.yml up -d
+          EOF
