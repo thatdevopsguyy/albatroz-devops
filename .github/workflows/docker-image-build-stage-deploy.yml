@@ -212,6 +212,10 @@ jobs:
         uses: webfactory/ssh-agent@v0.5.3
         with:
           ssh-private-key: ${{ secrets.STAGE_SSH_KEY }}
+          
+      - name: Copy docker compose file to remote server
+        run: |
+          scp ./docker-compose.stage.yml ${{ secrets.STAGE_USER }}@${{ secrets.STAGE_HOST }}:~/albatroz-admin-angular-node/          
 
       - name: Deploy
         run: |
