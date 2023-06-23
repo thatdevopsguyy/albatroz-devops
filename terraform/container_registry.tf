@@ -4,7 +4,7 @@ resource "azurerm_container_registry" "acr" {
   name                = "albatrozcr"
   resource_group_name = var.resource_group_name
   location            = var.location
-  sku                 = "Standard"
+  sku                 = "Premium"
   admin_enabled       = true
   tags                = local.tags_default
 }
