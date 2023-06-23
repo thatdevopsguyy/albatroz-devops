@@ -218,6 +218,9 @@ jobs:
           scp ./docker-compose.stage.yml ${{ secrets.STAGE_USER }}@${{ secrets.STAGE_HOST }}:~        
 
       - name: Deploy
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.STAGE_USER }}@${{ secrets.STAGE_HOST }} <<EOF
             docker login kishorecr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
