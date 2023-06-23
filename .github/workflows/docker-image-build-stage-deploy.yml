@@ -215,7 +215,9 @@ jobs:
 
       - name: Copy docker compose file to remote server
         run: |
-          scp ./docker-compose.stage.yml ${{ secrets.STAGE_USER }}@${{ secrets.STAGE_HOST }}:~        
+          ls -latrh 
+          pwd
+          scp -o StrictHostKeyChecking=no ./docker-compose.stage.yml ${{ secrets.STAGE_USER }}@${{ secrets.STAGE_HOST }}:~        
 
       - name: Deploy
         env:
