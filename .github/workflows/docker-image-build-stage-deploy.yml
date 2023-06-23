@@ -22,27 +22,20 @@ on:
 
 jobs:
   setup:
-    # This job runs on a self-hosted runner.
-    # Ensure your self-hosted runner has Docker installed and can handle multiple concurrent jobs.
     runs-on: self-hosted
     outputs:
       version: ${{ steps.semver.outputs.version }}
     steps:
-      # Checking out the repository.
-      # If the workflow is triggered by repository dispatch, use the SHA from client payload.
-      # For other events, checkout the code from the triggered ref.
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
           repository: 'thatdevopsguyy/albatroz-admin-angular-node'
           ref: ${{ github.event.client_payload.sha || github.ref }}
 
-      # Calculating a semantic version based on the number of commits.
       - name: Get semantic version
         id: semver
         run: echo "::set-output name=version::$(git rev-list --count HEAD).$(date +'%Y%m%d%H%M%S')"
 
-      # Logging in to Azure Container Registry.
       - name: Login to Azure Container Registry
         uses: docker/login-action@v1
         with:
@@ -50,11 +43,6 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-  # The following jobs build and push Docker images.
-  # Each job represents a component of your application and runs only if the corresponding image is requested to be built.
-  # These jobs can potentially run in parallel if their dependency (setup job) is done and their 'if' condition is met.
-  # This is based on the availability of the runners.
-  # If you're using a self-hosted runner, make sure it can handle the workload of multiple concurrent jobs.
   build_backend:
     needs: setup
     runs-on: self-hosted
@@ -71,6 +59,7 @@ jobs:
 
       - name: Build and push Backend Docker image
         run: |
+          docker login kishorecr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
           docker build -t kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-backend_code:latest ./backend_code
           docker push kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }}
           docker push kishorecr.azurecr.io/albatroz-backend_code:latest
@@ -95,6 +84,7 @@ jobs:
           password: ${{ secrets.ACR_PASSWORD }} 
       - name: Build and push Frontend Docker image
         run: |
+          docker login kishorecr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
           docker build -t kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-frontend_code:latest ./frontend_code
           docker push kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }}
           docker push kishorecr.azurecr.io/albatroz-frontend_code:latest
@@ -121,6 +111,7 @@ jobs:
 
       - name: Build and push Nginx Docker image
         run: |
+          docker login kishorecr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
           docker build -t kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-nginx:latest ./nginx
           docker push kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }}
           docker push kishorecr.azurecr.io/albatroz-nginx:latest
@@ -147,6 +138,7 @@ jobs:
 
       - name: Build and push Nginx Proxy Docker image
         run: |
+          docker login kishorecr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
           docker build -t kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-nginx-proxy:latest ./nginx-proxy
           docker push kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }}
           docker push kishorecr.azurecr.io/albatroz-nginx-proxy:latest
@@ -173,6 +165,7 @@ jobs:
 
       - name: Build and push LetsEncrypt Docker image
         run: |
+          docker login kishorecr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
           docker build -t kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-letsencrypt:latest ./letsencrypt
           docker push kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }}
           docker push kishorecr.azurecr.io/albatroz-letsencrypt:latest  
@@ -184,7 +177,7 @@ jobs:
 
   deploy:
     needs: [build_backend, build_frontend, build_nginx, build_nginx_proxy, build_letsencrypt]
-    if: ${{ (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main') && (github.event.inputs.image == 'all' || github.event.inputs.image == 'frontend_code' ||github.event.inputs.image == 'backend_code'|| github.event_name == 'push' || github.event_name == 'repository_dispatch') }}
+    if: ${{ (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main') && (github.event.inputs.image == 'all' || github.event.inputs.image == 'frontend_code' || github.event.inputs.image == 'backend_code' || github.event_name == 'push' || github.event_name == 'repository_dispatch') }}
     runs-on: self-hosted
     steps:
       - name: Checkout repository
@@ -207,4 +200,3 @@ jobs:
             docker pull kishorecr.azurecr.io/albatroz-letsencrypt:latest
             docker-compose -f docker-compose.stage.yaml up -d --force-recreate
           EOF          
-          
