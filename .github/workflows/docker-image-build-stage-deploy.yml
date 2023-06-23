@@ -57,9 +57,13 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}  
 
-      - name: Build and push Backend Docker image
+      - name: Delete old Backend Docker image
         run: |
           docker login kishorecr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+          docker image rm kishorecr.azurecr.io/albatroz-backend_code:latest || true
+
+      - name: Build and push Backend Docker image
+        run: |
           docker build -t kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-backend_code:latest ./backend_code
           docker push kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }}
           docker push kishorecr.azurecr.io/albatroz-backend_code:latest
@@ -67,7 +71,8 @@ jobs:
       - name: List Backend Docker image
         run: |
           echo "Backend Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
+          docker images kishorecr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images kishorecr.azurecr.io/albatroz-backend_code:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
 
   build_frontend:
     needs: setup
@@ -82,9 +87,13 @@ jobs:
           registry: kishorecr.azurecr.io
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }} 
-      - name: Build and push Frontend Docker image
+      - name: Delete old Frontend Docker image
         run: |
           docker login kishorecr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+          docker image rm kishorecr.azurecr.io/albatroz-frontend_code:latest || true
+
+      - name: Build and push Frontend Docker image
+        run: |
           docker build -t kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-frontend_code:latest ./frontend_code
           docker push kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }}
           docker push kishorecr.azurecr.io/albatroz-frontend_code:latest
@@ -92,8 +101,8 @@ jobs:
       - name: List Frontend Docker image
         run: |
           echo "Frontend Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
-         
+          docker images kishorecr.azurecr.io/albatroz-frontend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images kishorecr.azurecr.io/albatroz-frontend_code:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
 
   build_nginx:
     needs: setup
@@ -109,18 +118,22 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }} 
 
-      - name: Build and push Nginx Docker image
+      - name: Delete old Nginx Docker image
         run: |
           docker login kishorecr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+          docker image rm kishorecr.azurecr.io/albatroz-nginx:latest || true
+
+      - name: Build and push Nginx Docker image
+        run: |
           docker build -t kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-nginx:latest ./nginx
           docker push kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }}
           docker push kishorecr.azurecr.io/albatroz-nginx:latest
 
-      - name: List Nginx  Docker image
+      - name: List Nginx Docker image
         run: |
-          echo "Nginx  Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
-           
+          echo "Nginx Docker image:"
+          docker images kishorecr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images kishorecr.azurecr.io/albatroz-nginx:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
 
   build_nginx_proxy:
     needs: setup
@@ -136,18 +149,22 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }} 
 
-      - name: Build and push Nginx Proxy Docker image
+      - name: Delete old Nginx Proxy Docker image
         run: |
           docker login kishorecr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+          docker image rm kishorecr.azurecr.io/albatroz-nginx-proxy:latest || true
+
+      - name: Build and push Nginx Proxy Docker image
+        run: |
           docker build -t kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-nginx-proxy:latest ./nginx-proxy
           docker push kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }}
           docker push kishorecr.azurecr.io/albatroz-nginx-proxy:latest
 
       - name: List Nginx Proxy Docker image
         run: |
-          echo "Nginx Docker Proxy image:"
-          docker images kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
-          
+          echo "Nginx Proxy Docker image:"
+          docker images kishorecr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images kishorecr.azurecr.io/albatroz-nginx-proxy:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
 
   build_letsencrypt:
     needs: setup
@@ -163,9 +180,13 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }} 
 
-      - name: Build and push LetsEncrypt Docker image
+      - name: Delete old LetsEncrypt Docker image
         run: |
           docker login kishorecr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+          docker image rm kishorecr.azurecr.io/albatroz-letsencrypt:latest || true
+
+      - name: Build and push LetsEncrypt Docker image
+        run: |
           docker build -t kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} -t kishorecr.azurecr.io/albatroz-letsencrypt:latest ./letsencrypt
           docker push kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }}
           docker push kishorecr.azurecr.io/albatroz-letsencrypt:latest  
@@ -173,7 +194,8 @@ jobs:
       - name: List LetsEncrypt Docker image
         run: |
           echo "LetsEncrypt Docker image:"
-          docker images kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"          
+          docker images kishorecr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images kishorecr.azurecr.io/albatroz-letsencrypt:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
 
   deploy:
     needs: [build_backend, build_frontend, build_nginx, build_nginx_proxy, build_letsencrypt]
@@ -199,4 +221,4 @@ jobs:
             docker pull kishorecr.azurecr.io/albatroz-nginx-proxy:latest
             docker pull kishorecr.azurecr.io/albatroz-letsencrypt:latest
             docker-compose -f docker-compose.stage.yaml up -d --force-recreate
-          EOF          
+          EOF
