@@ -220,5 +220,5 @@ jobs:
             docker pull kishorecr.azurecr.io/albatroz-nginx:latest
             docker pull kishorecr.azurecr.io/albatroz-nginx-proxy:latest
             docker pull kishorecr.azurecr.io/albatroz-letsencrypt:latest
-            docker-compose -f docker-compose.stage.yaml up -d --force-recreate
+            docker-compose -f docker-compose.stage.yml up -d --force-recreate
           EOF
