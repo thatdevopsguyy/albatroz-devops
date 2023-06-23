@@ -217,7 +217,7 @@ jobs:
         run: |
           ls -latrh 
           pwd
-          scp -o StrictHostKeyChecking=no ./docker-compose.stage.yml ${{ secrets.STAGE_USER }}@${{ secrets.STAGE_HOST }}:~        
+          scp -o StrictHostKeyChecking=no docker-compose.stage.yml ${{ secrets.STAGE_USER }}@${{ secrets.STAGE_HOST }}:~        
 
       - name: Deploy
         env:
