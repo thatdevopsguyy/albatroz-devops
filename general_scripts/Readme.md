@@ -186,7 +186,78 @@ This script sets up an Azure CI/CD runner environment by installing necessary pa
 
 **Note:** Make sure to run the script with appropriate permissions, as some commands require sudo access. It is also recommended to review the script and customize it according to your specific requirements before running it.
 
-# GitHub Actions Runner Setup Script(3-configure-runner.sh) [ Individual Setup] No need to run this for infra setup
+## Post-Terraform Configuration
+
+After Terraform has created your infrastructure according to the model provided by `thatdevopsguyy/albatroz-devops`, you will need to perform additional steps.
+
+## Repository Comparison and Creation
+
+Compare the changes added in the `thatdevopsguyy/albatroz-admin-angular-node` repository and create your own repository accordingly. Pay special attention to the following notable changes:
+
+- GitHub workflows
+- Docker configuration for backend code
+- `docker-compose.prod.yml`
+- `docker-compose.stage.yml`
+- Nginx-proxy and Letsencrypt directory and its Docker files
+
+## Secrets Setup
+
+You will need to set the following secrets for GitHub Action secrets in the `thatdevopsguyy/albatroz-devops` repository:
+
+- `ACR_USERNAME`: Get it from Azure Container Registry.
+- `ADMIN_PASSWORD`: Get it from Azure Container Registry.
+- `MYSQL_PASSWORD`: Present in Docker Compose file password for database service.
+- `MYSQL_ROOT_PASSWORD`: Present in Docker Compose file password for database service.
+- `PROD_HOST`: IP/hostname of `albatroz-production`.
+- `PROD_SSH_KEY`: `albatroz-production` SSH key.
+- `PROD_USER`: `azureuser`.
+- `STAGE_HOST`: IP/hostname of `albatroz-homolog`.
+- `STAGE_SSH_KEY`: `albatroz-homolog` SSH key.
+- `STAGE_USER`: `azureuser`.
+## Server Access and SSH Keys
+
+Once `2-install-dependency.sh` has been run, log in to the server from your laptop or Azure shell using the password method. Run cat `~/.ssh/id_rsa` for both `albatroz-homolog` and `albatroz-production`. You will need to update the SSH keys in GitHub Actions as `STAGE_SSH_KEY` and `PROD_SSH_KEY` respectively.
+
+## Personal Access Token (PAT) Configuration
+
+Create a fine-grained PAT token (2-year validity) in the `thatdevopsguyy/albatroz-admin-angular-node` repository and add it as `PAT`. You will need to replace this token every 2 years. The token should have the following permissions:
+
+- Read access to actions variables, metadata, repository hooks, and secrets
+- Read and write access to actions, code, commit statuses, deployments, discussions, environments, issues, and pull requests.
+- make sure the Token has access for `thatdevopsguyy/albatroz-devops`
+`thatdevopsguyy/albatroz-admin-angular-node`
+
+## PAT Setup
+
+* Go to the GitHub website and sign in to your account.
+* In the upper-right corner of any page, click your profile photo, then click Settings.
+* In the left sidebar, click Developer settings.
+* In the left sidebar, click Personal access tokens.
+* Click Generate new token.
+* Give your token a descriptive name.
+* Select the scopes you wish to grant this token.
+*   - For this setup, you should select:
+       - repo
+       - admin:org
+       - admin:public_key
+       - admin:repo_hook
+       - admin:org_hook
+       - user
+       - write:discussion
+       - read:discussion
+       - workflow
+* Click Generate token.
+* Copy the token to a secure place. This is your only opportunity to copy the token. If you lose it, you will have to generate a new one.
+
+## Workflow Execution
+For information on how to run workflows and more on workflows for stage and prod, refer to the following resources:
+
+"Docker Image Build Stage Deploy Guide[docker-image-build-stage-deploy.md]"
+"Prod Deploy Guide[prod-deploy]"
+
+
+### Extra ### No need to run this for infra setup
+# GitHub Actions Runner Setup Script(3-configure-runner.sh) [ Individual Setup] 
 
 This script sets up a GitHub Actions runner by downloading the runner package, configuring it, and creating a service to keep the runner running.
 
