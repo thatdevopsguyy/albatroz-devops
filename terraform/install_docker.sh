@@ -27,5 +27,7 @@ sudo service ssh restart
 
 # Display contents of id_rsa private key
 echo "SSH key pair generated and configured for public key authentication."
-echo "Contents of id_rsa private key:"
-cat ~/.ssh/id_rsa
+echo "Contents of id_rsa private key: placed in ~/.ssh/id_rsa , Use this file for github Auth"
+
+# Install Mysql client 
+sudo apt-get update && sudo apt-get install -y mysql-client
