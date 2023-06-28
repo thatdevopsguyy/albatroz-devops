@@ -31,6 +31,8 @@ jobs:
         with:
           repository: 'thatdevopsguyy/albatroz-admin-angular-node'
           ref: ${{ github.event.client_payload.sha || github.ref }}
+          ssh-key: ${{ secrets.GHRUNNER_SSH_PRIVATE_KEY }}
+
 
       - name: Get semantic version
         id: semver
@@ -207,6 +209,8 @@ jobs:
         with:
           repository: 'thatdevopsguyy/albatroz-admin-angular-node'
           ref: ${{ github.event.client_payload.sha || github.ref }}
+          ssh-key: ${{ secrets.GHRUNNER_SSH_PRIVATE_KEY }}
+
 
       - name: Install SSH key
         uses: webfactory/ssh-agent@v0.5.3
