@@ -67,6 +67,7 @@ jobs:
       - name: Build and push Backend Docker image
         env:
           DB_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          SENDGRID_SECRET_KEY: ${{ secrets.STAGE_SENDGRID_SECRET_KEY }}
         run: |
           docker build -t albatrozcr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code:latest ./backend_code
           docker push albatrozcr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }}
