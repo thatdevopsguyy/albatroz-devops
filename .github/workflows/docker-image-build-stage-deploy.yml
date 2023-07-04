@@ -76,6 +76,7 @@ jobs:
           docker push albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }}
           docker tag albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} albatrozcr.azurecr.io/albatroz-backend_code_stage:latest
           docker push albatrozcr.azurecr.io/albatroz-backend_code_stage:latest
+          cp /home/azureuser/env/.env.prod ./backend_code/
           docker build -t albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code_prod:latest --build-arg ENV_FILE=.env.prod ./backend_code
           docker push albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }}
           docker tag albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} albatrozcr.azurecr.io/albatroz-backend_code_prod:latest
