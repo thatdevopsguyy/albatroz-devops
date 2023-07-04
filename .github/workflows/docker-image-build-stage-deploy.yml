@@ -62,8 +62,8 @@ jobs:
       - name: Delete old Backend Docker image
         run: |
           docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
-          docker image rm albatrozcr.azurecr.io/albatroz-backend_code_stage:latest || true
-          docker image rm albatrozcr.azurecr.io/albatroz-backend_code_prod:latest || true
+          docker image inspect albatrozcr.azurecr.io/albatroz-backend_code_stage:latest > /dev/null 2>&1 && docker image rm albatrozcr.azurecr.io/albatroz-backend_code_stage:latest || echo "Image not found, skipping removal"
+          docker image inspect albatrozcr.azurecr.io/albatroz-backend_code_prod:latest > /dev/null 2>&1 && docker image rm albatrozcr.azurecr.io/albatroz-backend_code_prod:latest || echo "Image not found, skipping removal"
 
       - name: Get Secrets from Azure Key vault
         run: |
@@ -74,9 +74,11 @@ jobs:
         run: |
           docker build -t albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code:latest --build-arg ENV_FILE=.env.stage ./backend_code
           docker push albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }}
+          docker tag albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} albatrozcr.azurecr.io/albatroz-backend_code_stage:latest
           docker push albatrozcr.azurecr.io/albatroz-backend_code_stage:latest
           docker build -t albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code:latest --build-arg ENV_FILE=.env.prod ./backend_code
           docker push albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }}
+          docker tag albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} albatrozcr.azurecr.io/albatroz-backend_code_prod:latest
           docker push albatrozcr.azurecr.io/albatroz-backend_code_prod:latest
 
       - name: List Backend Docker image
