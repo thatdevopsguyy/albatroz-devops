@@ -14,7 +14,7 @@ resource "azurerm_storage_account" "sa" {
 resource "azurerm_storage_container" "sc_prod" {
   name                  = var.storage_container_name_prod # Name of the Storage Container
   storage_account_name  = azurerm_storage_account.sa.name # Name of the associated Storage Account
-  container_access_type = "private"                       # Access type for the Storage Container (private, blob, container, or anonymous)
+  container_access_type = "blob"                          # Access type for the Storage Container (private, blob, container, or anonymous)
 }
 
 # Create a Storage Container named "sc_stage" under the previously created Storage Account:
@@ -22,5 +22,5 @@ resource "azurerm_storage_container" "sc_prod" {
 resource "azurerm_storage_container" "sc_stage" {
   name                  = var.storage_container_name_stage # Name of the Storage Container
   storage_account_name  = azurerm_storage_account.sa.name  # Name of the associated Storage Account
-  container_access_type = "private"                        # Access type for the Storage Container (private, blob, container, or anonymous)
+  container_access_type = "blob"                           # Access type for the Storage Container (private, blob, container, or anonymous)
 }
