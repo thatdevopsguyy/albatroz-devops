@@ -48,7 +48,7 @@ jobs:
   build_backend:
     needs: setup
     runs-on: self-hosted
-    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'backend_code' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
+    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'backend_code_stage' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
     outputs:
       completed: ${{ needs.setup.outputs.completed }}
     steps:
@@ -67,8 +67,9 @@ jobs:
 
       - name: Get Secrets from Azure Key vault
         run: |
-          az keyvault secret download --vault-name albatrozenv --name env-stage --file .env.stage
-          az keyvault secret download --vault-name albatrozenv --name env-prod --file .env.prod      
+          az keyvault secret download --vault-name albatrozenv --name env-stage --file .env.stage || exit 1
+          az keyvault secret download --vault-name albatrozenv --name env-prod --file .env.prod || exit 1
+    
     
       - name: Build and push Backend Docker image
         run: |
