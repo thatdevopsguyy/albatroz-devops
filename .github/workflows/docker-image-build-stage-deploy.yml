@@ -65,14 +65,10 @@ jobs:
           docker image inspect albatrozcr.azurecr.io/albatroz-backend_code_stage:latest > /dev/null 2>&1 && docker image rm albatrozcr.azurecr.io/albatroz-backend_code_stage:latest || echo "Image not found, skipping removal"
           docker image inspect albatrozcr.azurecr.io/albatroz-backend_code_prod:latest > /dev/null 2>&1 && docker image rm albatrozcr.azurecr.io/albatroz-backend_code_prod:latest || echo "Image not found, skipping removal"
 
-      - name: Get Secrets from Azure Key vault
-        run: |
-          az keyvault secret download --vault-name albatrozenv --name env-stage --file .env.stage && ls -altrh .env.stage && pwd
-          az keyvault secret download --vault-name albatrozenv --name env-prod --file .env.prod && ls -altrh .env.prod && pwd
       - name: Copy .env files to Docker context
         run: |
-          cp $PWD/.env.stage ./backend_code/
-          cp $PWD/.env.prod ./backend_code/
+          cp /home/azureuser/env/.env.stage ./backend_code/ 
+          cp /home/azureuser/env/.env.prod ./backend_code/
     
       - name: Build and push Backend Docker image
         run: |
