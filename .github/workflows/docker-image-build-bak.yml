@@ -48,7 +48,7 @@ jobs:
   build_backend:
     needs: setup
     runs-on: self-hosted
-    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'backend_code_stage' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
+    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'backend_code' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
     outputs:
       completed: ${{ needs.setup.outputs.completed }}
     steps:
@@ -62,33 +62,26 @@ jobs:
       - name: Delete old Backend Docker image
         run: |
           docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
-          docker image inspect albatrozcr.azurecr.io/albatroz-backend_code_stage:latest > /dev/null 2>&1 && docker image rm albatrozcr.azurecr.io/albatroz-backend_code_stage:latest || echo "Image not found, skipping removal"
-          docker image inspect albatrozcr.azurecr.io/albatroz-backend_code_prod:latest > /dev/null 2>&1 && docker image rm albatrozcr.azurecr.io/albatroz-backend_code_prod:latest || echo "Image not found, skipping removal"
+          docker image rm albatrozcr.azurecr.io/albatroz-backend_code:latest || true
 
       - name: Get Secrets from Azure Key vault
         run: |
-          az keyvault secret download --vault-name albatrozenv --name env-stage --file .env.stage && ls -altrh .env.stage
-          az keyvault secret download --vault-name albatrozenv --name env-prod --file .env.prod && ls -altrh .env.prod
-    
+          az keyvault secret download --vault-name albatrozenv --name env-stage --file .env.stage       
     
       - name: Build and push Backend Docker image
+        env:
+          DB_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          SENDGRID_SECRET_KEY: ${{ secrets.STAGE_SENDGRID_SECRET_KEY }}
         run: |
-          docker build -t albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code:latest --build-arg ENV_FILE=.env.stage ./backend_code
-          docker push albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }}
-          docker tag albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} albatrozcr.azurecr.io/albatroz-backend_code_stage:latest
-          docker push albatrozcr.azurecr.io/albatroz-backend_code_stage:latest
-          docker build -t albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code:latest --build-arg ENV_FILE=.env.prod ./backend_code
-          docker push albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }}
-          docker tag albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} albatrozcr.azurecr.io/albatroz-backend_code_prod:latest
-          docker push albatrozcr.azurecr.io/albatroz-backend_code_prod:latest
+          docker build -t albatrozcr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code:latest ./backend_code
+          docker push albatrozcr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }}
+          docker push albatrozcr.azurecr.io/albatroz-backend_code:latest
 
       - name: List Backend Docker image
         run: |
           echo "Backend Docker image:"
-          docker images albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
-          docker images albatrozcr.azurecr.io/albatroz-backend_code_stage:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
-          docker images albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
-          docker images albatrozcr.azurecr.io/albatroz-backend_code_prod:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-backend_code:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
 
   build_frontend:
     needs: setup
@@ -242,4 +235,4 @@ jobs:
         run: |
           ENCODED_MYSQL_ROOT_PASSWORD=$(echo -n $MYSQL_ROOT_PASSWORD | base64)
           ENCODED_MYSQL_PASSWORD=$(echo -n $MYSQL_PASSWORD | base64)
-          ssh -o StrictHostKeyChecking=no ${{ secrets.STAGE_USER }}@${{ secrets.STAGE_HOST }} "bash -c 'export MYSQL_ROOT_PASSWORD=\$(echo -n $ENCODED_MYSQL_ROOT_PASSWORD | base64 --decode); export MYSQL_PASSWORD=\$(echo -n $ENCODED_MYSQL_PASSWORD | base64 --decode); docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }} && docker pull albatrozcr.azurecr.io/albatroz-backend_code_stage:latest && docker pull albatrozcr.azurecr.io/albatroz-frontend_code:latest && docker pull albatrozcr.azurecr.io/albatroz-nginx:latest && docker pull albatrozcr.azurecr.io/albatroz-nginx-proxy:latest && docker pull albatrozcr.azurecr.io/albatroz-letsencrypt:latest && docker-compose -f ~/docker-compose.stage.yml up -d --force-recreate'"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.STAGE_USER }}@${{ secrets.STAGE_HOST }} "bash -c 'export MYSQL_ROOT_PASSWORD=\$(echo -n $ENCODED_MYSQL_ROOT_PASSWORD | base64 --decode); export MYSQL_PASSWORD=\$(echo -n $ENCODED_MYSQL_PASSWORD | base64 --decode); docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }} && docker pull albatrozcr.azurecr.io/albatroz-backend_code:latest && docker pull albatrozcr.azurecr.io/albatroz-frontend_code:latest && docker pull albatrozcr.azurecr.io/albatroz-nginx:latest && docker pull albatrozcr.azurecr.io/albatroz-nginx-proxy:latest && docker pull albatrozcr.azurecr.io/albatroz-letsencrypt:latest && docker-compose -f ~/docker-compose.stage.yml up -d --force-recreate'"
