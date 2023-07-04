@@ -64,6 +64,10 @@ jobs:
           docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
           docker image rm albatrozcr.azurecr.io/albatroz-backend_code:latest || true
 
+      - name: Get Secrets from Azure Key vault
+        run: |
+          az keyvault secret download --vault-name albatrozenv --name env-stage --file .env.stage       
+    
       - name: Build and push Backend Docker image
         env:
           DB_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
