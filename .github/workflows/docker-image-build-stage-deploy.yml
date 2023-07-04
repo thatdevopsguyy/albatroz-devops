@@ -65,7 +65,7 @@ jobs:
           docker image inspect albatrozcr.azurecr.io/albatroz-backend_code_stage:latest > /dev/null 2>&1 && docker image rm albatrozcr.azurecr.io/albatroz-backend_code_stage:latest || echo "Image not found, skipping removal"
           docker image inspect albatrozcr.azurecr.io/albatroz-backend_code_prod:latest > /dev/null 2>&1 && docker image rm albatrozcr.azurecr.io/albatroz-backend_code_prod:latest || echo "Image not found, skipping removal"
 
-      - name: Copy .env files to Docker context
+      - name: Copy .env files to Docker context 
         run: |
           cp /home/azureuser/env/.env.stage ./backend_code/ 
           cp /home/azureuser/env/.env.prod ./backend_code/
@@ -76,7 +76,6 @@ jobs:
           docker push albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }}
           docker tag albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} albatrozcr.azurecr.io/albatroz-backend_code_stage:latest
           docker push albatrozcr.azurecr.io/albatroz-backend_code_stage:latest
-          cp /home/azureuser/env/.env.prod ./backend_code/
           docker build -t albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code_prod:latest --build-arg ENV_FILE=.env.prod ./backend_code
           docker push albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }}
           docker tag albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} albatrozcr.azurecr.io/albatroz-backend_code_prod:latest
