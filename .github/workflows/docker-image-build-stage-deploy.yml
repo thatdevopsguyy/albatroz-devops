@@ -67,8 +67,8 @@ jobs:
 
       - name: Get Secrets from Azure Key vault
         run: |
-          az keyvault secret download --vault-name albatrozenv --name env-stage --file .env.stage && ls -altrh .env.stage
-          az keyvault secret download --vault-name albatrozenv --name env-prod --file .env.prod && ls -altrh .env.prod
+          az keyvault secret download --vault-name albatrozenv --name env-stage --file .env.stage && ls -altrh .env.stage && pwd
+          az keyvault secret download --vault-name albatrozenv --name env-prod --file .env.prod && ls -altrh .env.prod && pwd
     
     
       - name: Build and push Backend Docker image
