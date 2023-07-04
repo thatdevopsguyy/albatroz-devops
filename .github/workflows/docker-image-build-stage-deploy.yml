@@ -62,26 +62,30 @@ jobs:
       - name: Delete old Backend Docker image
         run: |
           docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
-          docker image rm albatrozcr.azurecr.io/albatroz-backend_code:latest || true
+          docker image rm albatrozcr.azurecr.io/albatroz-backend_code_stage:latest || true
+          docker image rm albatrozcr.azurecr.io/albatroz-backend_code_prod:latest || true
 
       - name: Get Secrets from Azure Key vault
         run: |
-          az keyvault secret download --vault-name albatrozenv --name env-stage --file .env.stage       
+          az keyvault secret download --vault-name albatrozenv --name env-stage --file .env.stage
+          az keyvault secret download --vault-name albatrozenv --name env-prod --file .env.prod      
     
       - name: Build and push Backend Docker image
-        env:
-          DB_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-          SENDGRID_SECRET_KEY: ${{ secrets.STAGE_SENDGRID_SECRET_KEY }}
         run: |
-          docker build -t albatrozcr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code:latest --build-arg ENV_FILE=.env.stage ./backend_code
-          docker push albatrozcr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }}
-          docker push albatrozcr.azurecr.io/albatroz-backend_code:latest
+          docker build -t albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code:latest --build-arg ENV_FILE=.env.stage ./backend_code
+          docker push albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }}
+          docker push albatrozcr.azurecr.io/albatroz-backend_code_stage:latest
+          docker build -t albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code:latest --build-arg ENV_FILE=.env.prod ./backend_code
+          docker push albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }}
+          docker push albatrozcr.azurecr.io/albatroz-backend_code_prod:latest
 
       - name: List Backend Docker image
         run: |
           echo "Backend Docker image:"
-          docker images albatrozcr.azurecr.io/albatroz-backend_code:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
-          docker images albatrozcr.azurecr.io/albatroz-backend_code:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-backend_code_stage:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-backend_code_prod:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
 
   build_frontend:
     needs: setup
@@ -235,4 +239,4 @@ jobs:
         run: |
           ENCODED_MYSQL_ROOT_PASSWORD=$(echo -n $MYSQL_ROOT_PASSWORD | base64)
           ENCODED_MYSQL_PASSWORD=$(echo -n $MYSQL_PASSWORD | base64)
-          ssh -o StrictHostKeyChecking=no ${{ secrets.STAGE_USER }}@${{ secrets.STAGE_HOST }} "bash -c 'export MYSQL_ROOT_PASSWORD=\$(echo -n $ENCODED_MYSQL_ROOT_PASSWORD | base64 --decode); export MYSQL_PASSWORD=\$(echo -n $ENCODED_MYSQL_PASSWORD | base64 --decode); docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }} && docker pull albatrozcr.azurecr.io/albatroz-backend_code:latest && docker pull albatrozcr.azurecr.io/albatroz-frontend_code:latest && docker pull albatrozcr.azurecr.io/albatroz-nginx:latest && docker pull albatrozcr.azurecr.io/albatroz-nginx-proxy:latest && docker pull albatrozcr.azurecr.io/albatroz-letsencrypt:latest && docker-compose -f ~/docker-compose.stage.yml up -d --force-recreate'"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.STAGE_USER }}@${{ secrets.STAGE_HOST }} "bash -c 'export MYSQL_ROOT_PASSWORD=\$(echo -n $ENCODED_MYSQL_ROOT_PASSWORD | base64 --decode); export MYSQL_PASSWORD=\$(echo -n $ENCODED_MYSQL_PASSWORD | base64 --decode); docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }} && docker pull albatrozcr.azurecr.io/albatroz-backend_code_stage:latest && docker pull albatrozcr.azurecr.io/albatroz-frontend_code:latest && docker pull albatrozcr.azurecr.io/albatroz-nginx:latest && docker pull albatrozcr.azurecr.io/albatroz-nginx-proxy:latest && docker pull albatrozcr.azurecr.io/albatroz-letsencrypt:latest && docker-compose -f ~/docker-compose.stage.yml up -d --force-recreate'"
