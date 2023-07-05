@@ -71,19 +71,19 @@ jobs:
 
       - name: Copy .env files to Docker context 
         run: |
-          ls -altrh  /home/azureuser/env/.env.stage
-          ls -altrh /home/azureuser/env/.env.prod
+          ls -altrh  /home/azureuser/env/stage-env
+          ls -altrh /home/azureuser/env/prod-env
           pwd
-          cp /home/azureuser/env/.env.stage ./backend_code/ 
-          cp /home/azureuser/env/.env.prod ./backend_code/
+          cp /home/azureuser/env/stage-env ./backend_code/ 
+          cp /home/azureuser/env/prod-env ./backend_code/
     
       - name: Build and push Backend Docker image
         run: |
-          docker build -t albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code_stage:latest --build-arg ENV_FILE=.env.stage ./backend_code
+          docker build -t albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code_stage:latest --build-arg ENV_FILE=stage-env ./backend_code
           docker push albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }}
           docker tag albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} albatrozcr.azurecr.io/albatroz-backend_code_stage:latest
           docker push albatrozcr.azurecr.io/albatroz-backend_code_stage:latest
-          docker build -t albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code_prod:latest --build-arg ENV_FILE=.env.prod ./backend_code
+          docker build -t albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code_prod:latest --build-arg ENV_FILE=prod-env ./backend_code
           docker push albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }}
           docker tag albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} albatrozcr.azurecr.io/albatroz-backend_code_prod:latest
           docker push albatrozcr.azurecr.io/albatroz-backend_code_prod:latest
