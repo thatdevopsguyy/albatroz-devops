@@ -19,7 +19,7 @@ on:
         required: true
         default: 'all'
       branch:
-        description: 'Select the branch to run the workflow'
+        description: 'Select the code repo branch to run the workflow(main,staging,develop)'
         required: true
         default: 'main'
   
