@@ -71,6 +71,9 @@ jobs:
 
       - name: Copy .env files to Docker context 
         run: |
+          ls -altrh  /home/azureuser/env/.env.stage
+          ls -altrh /home/azureuser/env/.env.prod
+          pwd
           cp /home/azureuser/env/.env.stage ./backend_code/ 
           cp /home/azureuser/env/.env.prod ./backend_code/
     
