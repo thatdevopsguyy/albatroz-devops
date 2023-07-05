@@ -3,10 +3,9 @@ name: Docker Image Build & Stage Deploy CI
 on:
   push:
     branches:
-      - dev
-      - stage
+      - develop
       - main
-      - master
+      - staging
   pull_request:
     types:
       - opened
