@@ -74,8 +74,8 @@ jobs:
           ls -altrh  /home/azureuser/env/stage-env
           ls -altrh /home/azureuser/env/prod-env
           pwd
-          cp /home/azureuser/env/stage-env ./backend_code/ 
-          cp /home/azureuser/env/prod-env ./backend_code/
+          cp /home/azureuser/env/stage-env ./backend_code/stage-env 
+          cp /home/azureuser/env/prod-env ./backend_code/prod-env
     
       - name: Build and push Backend Docker image
         run: |
