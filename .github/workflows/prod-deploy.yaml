@@ -1,12 +1,6 @@
 name: Deploy to Production
 
-on: 
-  pull_request:
-    types:
-      - opened
-      - synchronize    
-  repository_dispatch:
-    types: [build]
+on:  
   workflow_dispatch:
     inputs:
       generalVersion:
