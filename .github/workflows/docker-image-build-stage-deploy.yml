@@ -3,6 +3,8 @@ name: Docker Image Build & Stage Deploy CI
 on:   
   repository_dispatch:
     types: [build]
+    branches:
+    - staging
   workflow_dispatch:
     inputs:
       image:
