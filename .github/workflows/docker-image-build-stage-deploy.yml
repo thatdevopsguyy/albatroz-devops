@@ -38,7 +38,12 @@ jobs:
   build_backend:
     needs: setup
     runs-on: self-hosted
-    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'backend_code' || (github.event_name == 'repository_dispatch' && github.ref == 'refs/heads/staging'))
+    if: 
+      (github.event.inputs.image == 'all' ||
+      github.event.inputs.image == 'backend_code' ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'repository_dispatch' && github.ref == 'refs/heads/staging'))
+
     outputs:
       completed: ${{ needs.setup.outputs.completed }}
     steps:
