@@ -3,19 +3,12 @@ name: Docker Image Build & Stage Deploy CI
 on:   
   repository_dispatch:
     types: [build]
-    branches:
-    - staging
   workflow_dispatch:
     inputs:
       image:
         description: 'Which image to build (all, backend_code, frontend_code, nginx, nginx-proxy, letsencrypt)'
         required: true
         default: 'all'
-      branch:
-        description: 'Select the code repo branch to run the workflow(main)'
-        required: true
-        default: 'main'
-  
 
 jobs:
   setup:
@@ -27,7 +20,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: 'thatdevopsguyy/albatroz-admin-angular-node'
-          ref: ${{ github.event.client_payload.sha || inputs.branch  }}
+          ref: ${{ github.event.client_payload.sha || github.ref  }}
           ssh-key: ${{ secrets.GHRUNNER_SSH_PRIVATE_KEY }}
 
 
@@ -45,7 +38,7 @@ jobs:
   build_backend:
     needs: setup
     runs-on: self-hosted
-    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'backend_code_stage' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
+    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'backend_code' || (github.event_name == 'repository_dispatch' && github.ref == 'refs/heads/staging'))
     outputs:
       completed: ${{ needs.setup.outputs.completed }}
     steps:
@@ -92,7 +85,7 @@ jobs:
   build_frontend:
     needs: setup
     runs-on: self-hosted
-    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'frontend_code' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
+    if:  (github.event.inputs.image == 'all' || github.event.inputs.image == 'frontend_code' || (github.event_name == 'repository_dispatch' && github.ref == 'refs/heads/staging'))
     outputs:
       completed: ${{ needs.setup.outputs.completed }}
     steps:
@@ -131,7 +124,7 @@ jobs:
   build_nginx:
     needs: setup
     runs-on: self-hosted
-    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'nginx' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
+    if:  (github.event.inputs.image == 'all' || github.event.inputs.image == 'nginx' || (github.event_name == 'repository_dispatch' && github.ref == 'refs/heads/staging'))
     outputs:
       completed: ${{ needs.setup.outputs.completed }}
     steps:
@@ -162,7 +155,7 @@ jobs:
   build_nginx_proxy:
     needs: setup
     runs-on: self-hosted
-    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'nginx-proxy' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
+    if:  (github.event.inputs.image == 'all' || github.event.inputs.image == 'frontend_code' || (github.event_name == 'nginx-proxy' && github.ref == 'refs/heads/staging'))
     outputs:
       completed: ${{ needs.setup.outputs.completed }}
     steps:
@@ -193,7 +186,7 @@ jobs:
   build_letsencrypt:
     needs: setup
     runs-on: self-hosted
-    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'letsencrypt' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
+    if:  (github.event.inputs.image == 'all' || github.event.inputs.image == 'letsencrypt' || (github.event_name == 'repository_dispatch' && github.ref == 'refs/heads/staging'))
     outputs:
       completed: ${{ needs.setup.outputs.completed }}
     steps:
@@ -223,14 +216,14 @@ jobs:
 
   deploy:
     needs: [setup, build_backend, build_frontend, build_nginx, build_nginx_proxy, build_letsencrypt]
-    if: ${{ (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main') && (github.event.inputs.image == 'all' || github.event.inputs.image == 'frontend_code' || github.event.inputs.image == 'backend_code' || github.event_name == 'push' || github.event_name == 'repository_dispatch') }}
+    if:  (github.ref == 'refs/heads/main' && (github.event.inputs.image == 'all' || github.event.inputs.image == 'frontend_code' || github.event.inputs.image == 'backend_code' || (github.event_name == 'repository_dispatch' && github.event.client_payload.branch == 'staging')))
     runs-on: self-hosted
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
           repository: 'thatdevopsguyy/albatroz-admin-angular-node'
-          ref: ${{ github.event.client_payload.sha || inputs.branch  }}
+          ref: ${{ github.event.client_payload.sha || github.ref  }}
           ssh-key: ${{ secrets.GHRUNNER_SSH_PRIVATE_KEY }}
 
 
