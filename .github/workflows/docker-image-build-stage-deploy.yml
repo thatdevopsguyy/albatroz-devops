@@ -35,7 +35,7 @@ jobs:
     runs-on: self-hosted
     if: 
       github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' ||
-      github.event_name == 'repository_dispatch' && github.ref == 'refs/heads/staging'
+      github.event_name == 'repository_dispatch' && github.event.client_payload.ref == 'staging'
 
 
     outputs:
@@ -81,9 +81,9 @@ jobs:
   build_frontend:
     needs: setup
     runs-on: self-hosted
-    if:  
+    if: 
       github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' ||
-      github.event_name == 'repository_dispatch' && github.ref == 'refs/heads/staging'
+      github.event_name == 'repository_dispatch' && github.event.client_payload.ref == 'staging'
     outputs:
       completed: ${{ needs.setup.outputs.completed }}
     steps:
@@ -122,9 +122,9 @@ jobs:
   build_nginx:
     needs: setup
     runs-on: self-hosted
-    if:  
+    if: 
       github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' ||
-      github.event_name == 'repository_dispatch' && github.ref == 'refs/heads/staging'
+      github.event_name == 'repository_dispatch' && github.event.client_payload.ref == 'staging'
     outputs:
       completed: ${{ needs.setup.outputs.completed }}
     steps:
@@ -155,9 +155,9 @@ jobs:
   build_nginx_proxy:
     needs: setup
     runs-on: self-hosted
-    if:
+    if: 
       github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' ||
-      github.event_name == 'repository_dispatch' && github.ref == 'refs/heads/staging'
+      github.event_name == 'repository_dispatch' && github.event.client_payload.ref == 'staging'
     outputs:
       completed: ${{ needs.setup.outputs.completed }}
     steps:
@@ -188,9 +188,9 @@ jobs:
   build_letsencrypt:
     needs: setup
     runs-on: self-hosted
-    if:  
+    if: 
       github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' ||
-      github.event_name == 'repository_dispatch' && github.ref == 'refs/heads/staging'
+      github.event_name == 'repository_dispatch' && github.event.client_payload.ref == 'staging'
     outputs:
       completed: ${{ needs.setup.outputs.completed }}
     steps:
@@ -220,9 +220,9 @@ jobs:
 
   deploy:
     needs: [setup, build_backend, build_frontend, build_nginx, build_nginx_proxy, build_letsencrypt]
-    if:
+    if: 
       github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' ||
-      github.event_name == 'repository_dispatch' && github.ref == 'refs/heads/staging'
+      github.event_name == 'repository_dispatch' && github.event.client_payload.ref == 'staging'
     runs-on: self-hosted
     steps:
       - name: Checkout repository
