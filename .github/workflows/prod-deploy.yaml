@@ -119,11 +119,11 @@ jobs:
           export NGINX_PROXY_TAG=${{ github.event.inputs.nginxProxyVersion || github.event.inputs.generalVersion }}
           export LETSENCRYPT_TAG=${{ github.event.inputs.letsencryptVersion || github.event.inputs.generalVersion }}
           docker login ${{ env.REGISTRY }} -u "${{ secrets.ACR_USERNAME }}" -p "${{ secrets.ACR_PASSWORD }}"
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend_code_prod:$BACKEND_TAG
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend_code_prod:$FRONTEND_TAG
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx:$NGINX_TAG
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-proxy:$NGINX_PROXY_TAG
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-letsencrypt:$LETSENCRYPT_TAG
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend_code_prod:${{ github.event.inputs.backendVersion || github.event.inputs.generalVersion }}
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend_code_prod:${{ github.event.inputs.frontendVersion || github.event.inputs.generalVersion }}
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx:${{ github.event.inputs.nginxVersion || github.event.inputs.generalVersion }}
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-proxy:${{ github.event.inputs.nginxProxyVersion || github.event.inputs.generalVersion }}
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-letsencrypt:${{ github.event.inputs.letsencryptVersion || github.event.inputs.generalVersion }}
           docker-compose -f ~/docker-compose.prod.yml up -d --force-recreate
           EOF
 
