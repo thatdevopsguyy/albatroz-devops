@@ -1,0 +1,136 @@
+name: Deploy to Production
+
+on:  
+  workflow_dispatch:
+    inputs:
+      generalVersion:
+        description: 'Version for all images (used if specific version is not provided)'
+        required: false
+        default: 'latest'
+      backendVersion:
+        description: 'Version for backend image'
+        required: false
+        default: 'latest'
+      frontendVersion:
+        description: 'Version for frontend image'
+        required: false
+        default: 'latest'
+      nginxVersion:
+        description: 'Version for nginx image'
+        required: false
+        default: 'latest'
+      nginxProxyVersion:
+        description: 'Version for nginx-proxy image'
+        required: false
+        default: 'latest'
+      letsencryptVersion:
+        description: 'Version for letsencrypt image'
+        required: false
+        default: 'latest'
+      branch:
+        description: 'Select the code repo branch to run the workflow(main,staging,develop)'
+        required: true
+        default: 'main'  
+
+env:
+  REGISTRY: albatrozcr.azurecr.io
+  IMAGE_NAME: albatroz
+
+jobs:
+  Build_deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          repository: 'thatdevopsguyy/albatroz-admin-angular-node'
+          ref: ${{ github.event.client_payload.sha || inputs.branch }}
+          ssh-key: ${{ secrets.GHRUNNER_SSH_PRIVATE_KEY }}
+
+      - name: Get semantic version
+        id: semver
+        run: echo "::set-output name=version::$(git rev-list --count HEAD).$(date +'%Y%m%d%H%M%S')"
+
+      - name: Login to Azure Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: albatrozcr.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }} 
+
+      # - name: Delete old Backend Prod Docker image
+      #   run: |
+      #     docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+      #     docker image inspect albatrozcr.azurecr.io/albatroz-backend_code_prod:latest > /dev/null 2>&1 && docker image rm albatrozcr.azurecr.io/albatroz-backend_code_prod:latest || echo "Image not found, skipping removal"
+          
+      - name: Copy .env files to Docker context for Backend Code
+        run: |
+          cp /home/azureuser/env/prod-env ./backend_code/
+
+      - name: Build and push Backend Prod Docker image
+        run: |
+          docker build -t albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ steps.semver.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code_prod:latest --build-arg ENV_FILE=prod-env ./backend_code
+          docker push albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ steps.semver.outputs.version }}
+          docker tag albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ steps.semver.outputs.version }} albatrozcr.azurecr.io/albatroz-backend_code_prod:latest
+          docker push albatrozcr.azurecr.io/albatroz-backend_code_prod:latest   
+
+      - name: List Backend  Prod Docker image
+        run: |
+          echo "Backend Prod Docker image: "
+          docker images albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ steps.semver.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-backend_code_prod:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"          
+
+      # - name: Delete old Frontend Prod Docker image
+      #   run: |
+      #     docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+      #     docker image inspect albatrozcr.azurecr.io/albatroz-frontend_code_prod:latest > /dev/null 2>&1 && docker image rm albatrozcr.azurecr.io/albatroz-frontend_code_prod:latest || echo "Image not found, skipping removal"
+          
+      - name: Build and push Frontend Prod Docker image
+        run: |
+          docker build -t albatrozcr.azurecr.io/albatroz-frontend_code_prod:${{ steps.semver.outputs.version }} -t albatrozcr.azurecr.io/albatroz-frontend_code_prod:latest --build-arg BUILD_ENV=prod ./frontend_code
+          docker push albatrozcr.azurecr.io/albatroz-frontend_code_prod:${{ steps.semver.outputs.version }}
+          docker tag albatrozcr.azurecr.io/albatroz-frontend_code_prod:${{ steps.semver.outputs.version }} albatrozcr.azurecr.io/albatroz-frontend_code_prod:latest
+          docker push albatrozcr.azurecr.io/albatroz-frontend_code_prod:latest   
+
+      - name: List Frontend  Prod Docker image
+        run: |
+          echo "Frontend Prod Docker image: "
+          docker images albatrozcr.azurecr.io/albatroz-frontend_code_prod:${{ steps.semver.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-frontend_code_prod:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"          
+                    
+
+      - name: Install SSH key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.PROD_SSH_KEY }}
+
+      - name: Copy docker compose file to remote server
+        run: |
+          scp -o StrictHostKeyChecking=no ./docker-compose.prod.yml ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }}:~          
+
+
+      - name: Deploy
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} <<EOF
+          export BACKEND_TAG=${{ github.event.inputs.backendVersion || github.event.inputs.generalVersion }}
+          export FRONTEND_TAG=${{ github.event.inputs.frontendVersion || github.event.inputs.generalVersion }}
+          export NGINX_TAG=${{ github.event.inputs.nginxVersion || github.event.inputs.generalVersion }}
+          export NGINX_PROXY_TAG=${{ github.event.inputs.nginxProxyVersion || github.event.inputs.generalVersion }}
+          export LETSENCRYPT_TAG=${{ github.event.inputs.letsencryptVersion || github.event.inputs.generalVersion }}
+          docker login ${{ env.REGISTRY }} -u "${{ secrets.ACR_USERNAME }}" -p "${{ secrets.ACR_PASSWORD }}"
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend_code_prod:${{ github.event.inputs.backendVersion || github.event.inputs.generalVersion }}
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend_code_prod:${{ github.event.inputs.frontendVersion || github.event.inputs.generalVersion }}
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx:${{ github.event.inputs.nginxVersion || github.event.inputs.generalVersion }}
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-nginx-proxy:${{ github.event.inputs.nginxProxyVersion || github.event.inputs.generalVersion }}
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-letsencrypt:${{ github.event.inputs.letsencryptVersion || github.event.inputs.generalVersion }}
+          docker-compose -f ~/docker-compose.prod.yml up -d --force-recreate
+          EOF
+
+
+
+
+
+
+
+
