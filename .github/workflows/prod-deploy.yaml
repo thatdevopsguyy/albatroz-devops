@@ -8,11 +8,11 @@ on:
         required: false
         default: 'latest'
       backendVersion:
-        description: 'Version for backend image'
+        description: 'Version for backend image(main,latest(staging code tag))'
         required: false
         default: 'main'
       frontendVersion:
-        description: 'Version for frontend image'
+        description: 'Version for frontend image(main,latest(staging code tag))'
         required: false
         default: 'main'
       nginxVersion:
