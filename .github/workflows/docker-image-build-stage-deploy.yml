@@ -59,22 +59,31 @@ jobs:
           cp /home/azureuser/env/stage-env ./backend_code/
           cp /home/azureuser/env/prod-env ./backend_code/
     
-      - name: Build and push Backend Docker image
+      - name: Build and push Backend Docker image for (Staging Server -Staging Branch)
         run: |
           docker build -t albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code_stage:latest --build-arg ENV_FILE=stage-env ./backend_code
           docker push albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }}
           docker tag albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} albatrozcr.azurecr.io/albatroz-backend_code_stage:latest
           docker push albatrozcr.azurecr.io/albatroz-backend_code_stage:latest
+
+      - name: List Backend Docker image (Staging Server -Staging Branch)
+        run: |
+          echo "Backend Docker image:"
+          docker images albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-backend_code_stage:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"          
+
+## Comment and uncomment these 2 below steps for prod Backend image builds from staging branch 
+
+      - name: Build and push Backend Docker image (Prod Server -Staging Branch)
+        run: |
           docker build -t albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code_prod:latest --build-arg ENV_FILE=prod-env ./backend_code
           docker push albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }}
           docker tag albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} albatrozcr.azurecr.io/albatroz-backend_code_prod:latest
           docker push albatrozcr.azurecr.io/albatroz-backend_code_prod:latest
 
-      - name: List Backend Docker image
+      - name: List Backend Docker image (Prod Server -Staging Branch)
         run: |
           echo "Backend Docker image:"
-          docker images albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
-          docker images albatrozcr.azurecr.io/albatroz-backend_code_stage:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
           docker images albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
           docker images albatrozcr.azurecr.io/albatroz-backend_code_prod:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
 
@@ -99,26 +108,33 @@ jobs:
           docker image inspect albatrozcr.azurecr.io/albatroz-frontend_code_stage:latest > /dev/null 2>&1 && docker image rm albatrozcr.azurecr.io/albatroz-frontend_code_stage:latest || echo "Image not found, skipping removal"
           docker image inspect albatrozcr.azurecr.io/albatroz-frontend_code_prod:latest > /dev/null 2>&1 && docker image rm albatrozcr.azurecr.io/albatroz-frontend_code_prod:latest || echo "Image not found, skipping removal"
 
-      - name: Build and push Frontend Docker image
+      - name: Build and push Frontend Docker image(Staging Server -Staging Branch)
         run: |
           docker build -t albatrozcr.azurecr.io/albatroz-frontend_code_stage:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-frontend_code_stage:latest --build-arg BUILD_ENV=stage ./frontend_code
           docker push albatrozcr.azurecr.io/albatroz-frontend_code_stage:${{ needs.setup.outputs.version }}
           docker tag albatrozcr.azurecr.io/albatroz-frontend_code_stage:${{ needs.setup.outputs.version }} albatrozcr.azurecr.io/albatroz-frontend_code_stage:latest
           docker push albatrozcr.azurecr.io/albatroz-frontend_code_stage:latest
+
+      - name: List Frontend Docker image(Staging Server -Staging Branch)
+        run: |
+          echo "Frontend Docker image:"
+          docker images albatrozcr.azurecr.io/albatroz-frontend_code_stage:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-frontend_code_stage:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"          
+
+## Comment and uncomment these 2 below steps for prod Frontend image builds from staging branch 
+
+      - name: Build and push Frontend Docker image(Prod Server -Staging Branch)
+        run: |
           docker build -t albatrozcr.azurecr.io/albatroz-frontend_code_prod:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-frontend_code_prod:latest --build-arg BUILD_ENV=prod ./frontend_code
           docker push albatrozcr.azurecr.io/albatroz-frontend_code_prod:${{ needs.setup.outputs.version }}
           docker tag albatrozcr.azurecr.io/albatroz-frontend_code_prod:${{ needs.setup.outputs.version }} albatrozcr.azurecr.io/albatroz-frontend_code_prod:latest
           docker push albatrozcr.azurecr.io/albatroz-frontend_code_prod:latest
-
           
-      - name: List Frontend Docker image
+      - name: List Frontend Docker image(Prod Server -Staging Branch)
         run: |
           echo "Frontend Docker image:"
-          docker images albatrozcr.azurecr.io/albatroz-frontend_code_stage:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
-          docker images albatrozcr.azurecr.io/albatroz-frontend_code_stage:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
           docker images albatrozcr.azurecr.io/albatroz-frontend_code_prod:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
           docker images albatrozcr.azurecr.io/albatroz-frontend_code_prod:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
-
   build_nginx:
     needs: setup
     runs-on: self-hosted
