@@ -54,10 +54,9 @@ jobs:
           docker image inspect albatrozcr.azurecr.io/albatroz-backend_code_stage:latest > /dev/null 2>&1 && docker image rm albatrozcr.azurecr.io/albatroz-backend_code_stage:latest || echo "Image not found, skipping removal"
           docker image inspect albatrozcr.azurecr.io/albatroz-backend_code_prod:latest > /dev/null 2>&1 && docker image rm albatrozcr.azurecr.io/albatroz-backend_code_prod:latest || echo "Image not found, skipping removal"
 
-      - name: Copy .env files to Docker context 
+      - name: Copy .env files to Docker context(Staging Env)
         run: |
           cp /home/azureuser/env/stage-env ./backend_code/
-          cp /home/azureuser/env/prod-env ./backend_code/
     
       - name: Build and push Backend Docker image for (Staging Server -Staging Branch)
         run: |
@@ -72,7 +71,11 @@ jobs:
           docker images albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
           docker images albatrozcr.azurecr.io/albatroz-backend_code_stage:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"          
 
-## Comment and uncomment these 2 below steps for prod Backend image builds from staging branch 
+## Comment and uncomment these 3 below steps for prod Backend image builds from staging branch 
+
+      - name: Copy .env files to Docker context(Prod Env)
+        run: |
+          cp /home/azureuser/env/prod-env ./backend_code/
 
       - name: Build and push Backend Docker image (Prod Server -Staging Branch)
         run: |
