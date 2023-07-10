@@ -127,12 +127,28 @@ variable "container_registry_name" {
 
 variable "sql_server_version" {
   description = "Version of Sql Server"
-  default     = "12.0"
+  default     = "8.0"
 }
 
 variable "sql_database_size" {
   description = "max_size_gb of Sql Server"
-  default     = "20"
+  default     = "128"
+}
+
+variable "sql_server_compute_type" {
+  description = "Size of  MySql Server"
+  default     = "Standard_D2s_v3"
+}
+
+variable "sql_server_backup_retention_days" {
+  description = "No of Days for MySql Server Backup Retention"
+  default     = "7"
+}
+
+variable "ssl_enforcement_enabled" {
+  description = "Enable SSL enforcement"
+  type        = bool
+  default     = false
 }
 
 variable "stage_pub_ip" {
@@ -148,34 +164,3 @@ variable "prod_pub_ip" {
   default     = "albatroz-production-pub-ip"
 }
 
-# variable "ARM_SUBSCRIPTION_ID" {
-#   description = "The Azure Subscription ID"
-#   type        = string
-# }
-
-# variable "ARM_CLIENT_ID" {
-#   description = "The Azure Client ID"
-#   type        = string
-# }
-
-# variable "ARM_CLIENT_SECRET" {
-#   description = "The Azure Client Secret"
-#   type        = string
-#   sensitive   = true
-# }
-
-# variable "ARM_TENANT_ID" {
-#   description = "The Azure Tenant ID"
-#   type        = string
-# }
-
-# variable "CLIENT_CERTIFICATE_PATH" {
-#   description = "The path to the client certificate"
-#   type        = string
-#   default     = "/home/azureuser/albatroz-client.pfx"
-# }
-
-# variable "CLIENT_CERTIFICATE_PASSWORD" {
-#   description = "The password for the client certificate"
-#   type        = string
-# }
