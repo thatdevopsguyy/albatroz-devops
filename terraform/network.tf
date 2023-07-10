@@ -25,4 +25,13 @@ resource "azurerm_subnet" "subnet_production" {
   resource_group_name  = var.resource_group_name                  # Name of the resource group where the subnet will be created
   virtual_network_name = azurerm_virtual_network.albatroz_nw.name # Name of the associated virtual network
   address_prefixes     = ["10.0.2.0/24"]                          # CIDR block for the subnet
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.DBforMySQL/flexibleServers"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
 }
