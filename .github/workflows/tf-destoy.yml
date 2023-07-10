@@ -32,7 +32,7 @@ env:
   TF_VAR_database_name: "albatroz_db_prod"
   TF_VAR_sql_server_backup_retention_days: "7"
   TF_VAR_ssl_enforcement_enabled: "false"
-  TF_VAR_sql_server_compute_type: "Standard_B1ms"
+  TF_VAR_sql_server_compute_type: "GP_Standard_D2ds_v4"
 
 jobs:
   terraform-destroy:

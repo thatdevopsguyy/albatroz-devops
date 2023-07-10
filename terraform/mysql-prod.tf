@@ -25,3 +25,44 @@ resource "azurerm_mysql_flexible_database" "albatroz_db" {
   charset             = "utf8"
   collation           = "utf8_unicode_ci"
 }
+
+# Private Endpoint for Mysql
+
+resource "azurerm_network_security_group" "nsg" {
+  name                = "nsg"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+}
+
+resource "azurerm_network_security_rule" "allow_all" {
+  name                        = "AllowAll"
+  resource_group_name         = var.resource_group_name
+  network_security_group_name = azurerm_network_security_group.nsg.name
+  protocol                    = "*"
+  source_port_range           = "*"
+  destination_port_range      = "*"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  access                      = "Allow"
+  priority                    = 100
+  direction                   = "Inbound"
+}
+
+resource "azurerm_subnet_network_security_group_association" "example" {
+  subnet_id                 = azurerm_subnet.subnet_production.id
+  network_security_group_id = azurerm_network_security_group.nsg.id
+}
+
+resource "azurerm_private_endpoint" "mysql_endpoint" {
+  name                = "mysql_endpoint"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = azurerm_subnet.subnet_production.id
+
+  private_service_connection {
+    name                           = "mysql_psc"
+    private_connection_resource_id = azurerm_mysql_flexible_server.mysql_albatroz.id
+    subresource_names              = ["mysqlServer"]
+    is_manual_connection           = false
+  }
+}
