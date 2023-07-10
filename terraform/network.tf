@@ -26,12 +26,12 @@ resource "azurerm_subnet" "subnet_production" {
   virtual_network_name = azurerm_virtual_network.albatroz_nw.name # Name of the associated virtual network
   address_prefixes     = ["10.0.2.0/24"]                          # CIDR block for the subnet
 
-  delegation {
-    name = "delegation"
+  # delegation {
+  #   name = "delegation"
 
-    service_delegation {
-      name    = "Microsoft.DBforMySQL/flexibleServers"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
+  #   service_delegation {
+  #     name    = "Microsoft.DBforMySQL/flexibleServers"
+  #     actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+  #   }
+  # }
 }

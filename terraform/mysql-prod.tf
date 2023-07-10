@@ -7,7 +7,7 @@ resource "azurerm_mysql_flexible_server" "mysql_albatroz" {
   administrator_login    = var.sql_administrator_login
   administrator_password = var.sql_server_admin_password
   backup_retention_days  = var.sql_server_backup_retention_days
-  delegated_subnet_id    = azurerm_subnet.subnet_production.id
+  # delegated_subnet_id    = azurerm_subnet.subnet_production.id
   # public_network_access_enabled = true
 
   storage {
