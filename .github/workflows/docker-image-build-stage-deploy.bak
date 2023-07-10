@@ -1,0 +1,251 @@
+name: Docker Image Build & Stage Deploy CI
+
+on:   
+  repository_dispatch:
+    types: [build]
+  workflow_dispatch:
+    inputs:
+      image:
+        description: 'Which image to build (all, backend_code, frontend_code, nginx, nginx-proxy, letsencrypt)'
+        required: true
+        default: 'all'
+      branch:
+        description: 'Select the code repo branch to run the workflow(main)'
+        required: true
+        default: 'main'
+  
+
+jobs:
+  setup:
+    runs-on: self-hosted
+    outputs:
+      version: ${{ steps.semver.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          repository: 'thatdevopsguyy/albatroz-admin-angular-node'
+          ref: ${{ github.event.client_payload.sha || inputs.branch  }}
+          ssh-key: ${{ secrets.GHRUNNER_SSH_PRIVATE_KEY }}
+
+
+      - name: Get semantic version
+        id: semver
+        run: echo "::set-output name=version::$(git rev-list --count HEAD).$(date +'%Y%m%d%H%M%S')"
+
+      - name: Login to Azure Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: albatrozcr.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+  build_backend:
+    needs: setup
+    runs-on: self-hosted
+    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'backend_code_stage' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
+    outputs:
+      completed: ${{ needs.setup.outputs.completed }}
+    steps:
+      - name: Login to Azure Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: albatrozcr.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}  
+
+      - name: Delete old Backend Docker image
+        run: |
+          docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+          docker image inspect albatrozcr.azurecr.io/albatroz-backend_code_stage:latest > /dev/null 2>&1 && docker image rm albatrozcr.azurecr.io/albatroz-backend_code_stage:latest || echo "Image not found, skipping removal"
+          docker image inspect albatrozcr.azurecr.io/albatroz-backend_code_prod:latest > /dev/null 2>&1 && docker image rm albatrozcr.azurecr.io/albatroz-backend_code_prod:latest || echo "Image not found, skipping removal"
+
+      - name: Copy .env files to Docker context 
+        run: |
+          ls -altrh  /home/azureuser/env/stage-env
+          ls -altrh /home/azureuser/env/prod-env
+          pwd
+          cp /home/azureuser/env/stage-env ./backend_code/
+          cp /home/azureuser/env/prod-env ./backend_code/
+    
+      - name: Build and push Backend Docker image
+        run: |
+          docker build -t albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code_stage:latest --build-arg ENV_FILE=stage-env ./backend_code
+          docker push albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }}
+          docker tag albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} albatrozcr.azurecr.io/albatroz-backend_code_stage:latest
+          docker push albatrozcr.azurecr.io/albatroz-backend_code_stage:latest
+          docker build -t albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-backend_code_prod:latest --build-arg ENV_FILE=prod-env ./backend_code
+          docker push albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }}
+          docker tag albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} albatrozcr.azurecr.io/albatroz-backend_code_prod:latest
+          docker push albatrozcr.azurecr.io/albatroz-backend_code_prod:latest
+
+      - name: List Backend Docker image
+        run: |
+          echo "Backend Docker image:"
+          docker images albatrozcr.azurecr.io/albatroz-backend_code_stage:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-backend_code_stage:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-backend_code_prod:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-backend_code_prod:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
+
+  build_frontend:
+    needs: setup
+    runs-on: self-hosted
+    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'frontend_code' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
+    outputs:
+      completed: ${{ needs.setup.outputs.completed }}
+    steps:
+      - name: Login to Azure Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: albatrozcr.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }} 
+      - name: Delete old Frontend Docker image
+        run: |
+          docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+          docker image inspect albatrozcr.azurecr.io/albatroz-frontend_code_stage:latest > /dev/null 2>&1 && docker image rm albatrozcr.azurecr.io/albatroz-frontend_code_stage:latest || echo "Image not found, skipping removal"
+          docker image inspect albatrozcr.azurecr.io/albatroz-frontend_code_prod:latest > /dev/null 2>&1 && docker image rm albatrozcr.azurecr.io/albatroz-frontend_code_prod:latest || echo "Image not found, skipping removal"
+
+      - name: Build and push Frontend Docker image
+        run: |
+          docker build -t albatrozcr.azurecr.io/albatroz-frontend_code_stage:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-frontend_code_stage:latest --build-arg BUILD_ENV=stage ./frontend_code
+          docker push albatrozcr.azurecr.io/albatroz-frontend_code_stage:${{ needs.setup.outputs.version }}
+          docker tag albatrozcr.azurecr.io/albatroz-frontend_code_stage:${{ needs.setup.outputs.version }} albatrozcr.azurecr.io/albatroz-frontend_code_stage:latest
+          docker push albatrozcr.azurecr.io/albatroz-frontend_code_stage:latest
+          docker build -t albatrozcr.azurecr.io/albatroz-frontend_code_prod:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-frontend_code_prod:latest --build-arg BUILD_ENV=prod ./frontend_code
+          docker push albatrozcr.azurecr.io/albatroz-frontend_code_prod:${{ needs.setup.outputs.version }}
+          docker tag albatrozcr.azurecr.io/albatroz-frontend_code_prod:${{ needs.setup.outputs.version }} albatrozcr.azurecr.io/albatroz-frontend_code_prod:latest
+          docker push albatrozcr.azurecr.io/albatroz-frontend_code_prod:latest
+
+          
+      - name: List Frontend Docker image
+        run: |
+          echo "Frontend Docker image:"
+          docker images albatrozcr.azurecr.io/albatroz-frontend_code_stage:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-frontend_code_stage:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-frontend_code_prod:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-frontend_code_prod:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
+
+  build_nginx:
+    needs: setup
+    runs-on: self-hosted
+    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'nginx' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
+    outputs:
+      completed: ${{ needs.setup.outputs.completed }}
+    steps:
+      - name: Login to Azure Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: albatrozcr.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }} 
+
+      - name: Delete old Nginx Docker image
+        run: |
+          docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+          docker image rm albatrozcr.azurecr.io/albatroz-nginx:latest || true
+
+      - name: Build and push Nginx Docker image
+        run: |
+          docker build -t albatrozcr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-nginx:latest ./nginx
+          docker push albatrozcr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }}
+          docker push albatrozcr.azurecr.io/albatroz-nginx:latest
+
+      - name: List Nginx Docker image
+        run: |
+          echo "Nginx Docker image:"
+          docker images albatrozcr.azurecr.io/albatroz-nginx:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-nginx:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
+
+  build_nginx_proxy:
+    needs: setup
+    runs-on: self-hosted
+    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'nginx-proxy' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
+    outputs:
+      completed: ${{ needs.setup.outputs.completed }}
+    steps:
+      - name: Login to Azure Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: albatrozcr.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }} 
+
+      - name: Delete old Nginx Proxy Docker image
+        run: |
+          docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+          docker image rm albatrozcr.azurecr.io/albatroz-nginx-proxy:latest || true
+
+      - name: Build and push Nginx Proxy Docker image
+        run: |
+          docker build -t albatrozcr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-nginx-proxy:latest ./nginx-proxy
+          docker push albatrozcr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }}
+          docker push albatrozcr.azurecr.io/albatroz-nginx-proxy:latest
+
+      - name: List Nginx Proxy Docker image
+        run: |
+          echo "Nginx Proxy Docker image:"
+          docker images albatrozcr.azurecr.io/albatroz-nginx-proxy:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-nginx-proxy:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
+
+  build_letsencrypt:
+    needs: setup
+    runs-on: self-hosted
+    if: (github.event.inputs.image == 'all' || github.event.inputs.image == 'letsencrypt' || github.event_name == 'push' || github.event_name == 'repository_dispatch')
+    outputs:
+      completed: ${{ needs.setup.outputs.completed }}
+    steps:
+      - name: Login to Azure Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: albatrozcr.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }} 
+
+      - name: Delete old LetsEncrypt Docker image
+        run: |
+          docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+          docker image rm albatrozcr.azurecr.io/albatroz-letsencrypt:latest || true
+
+      - name: Build and push LetsEncrypt Docker image
+        run: |
+          docker build -t albatrozcr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} -t albatrozcr.azurecr.io/albatroz-letsencrypt:latest ./letsencrypt
+          docker push albatrozcr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }}
+          docker push albatrozcr.azurecr.io/albatroz-letsencrypt:latest  
+
+      - name: List LetsEncrypt Docker image
+        run: |
+          echo "LetsEncrypt Docker image:"
+          docker images albatrozcr.azurecr.io/albatroz-letsencrypt:${{ needs.setup.outputs.version }} --format "repository:tag: {{.Repository}}:{{.Tag}}"
+          docker images albatrozcr.azurecr.io/albatroz-letsencrypt:latest --format "repository:tag: {{.Repository}}:{{.Tag}}"
+
+  deploy:
+    needs: [setup, build_backend, build_frontend, build_nginx, build_nginx_proxy, build_letsencrypt]
+    if: ${{ (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main') && (github.event.inputs.image == 'all' || github.event.inputs.image == 'frontend_code' || github.event.inputs.image == 'backend_code' || github.event_name == 'push' || github.event_name == 'repository_dispatch') }}
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          repository: 'thatdevopsguyy/albatroz-admin-angular-node'
+          ref: ${{ github.event.client_payload.sha || inputs.branch  }}
+          ssh-key: ${{ secrets.GHRUNNER_SSH_PRIVATE_KEY }}
+
+
+      - name: Install SSH key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.STAGE_SSH_KEY }}
+
+      - name: Copy docker compose file to remote server
+        run: |
+          scp -o StrictHostKeyChecking=no ./docker-compose.stage.yml ${{ secrets.STAGE_USER }}@${{ secrets.STAGE_HOST }}:~        
+
+      - name: Deploy
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+        run: |
+          ENCODED_MYSQL_ROOT_PASSWORD=$(echo -n $MYSQL_ROOT_PASSWORD | base64)
+          ENCODED_MYSQL_PASSWORD=$(echo -n $MYSQL_PASSWORD | base64)
+          ssh -o StrictHostKeyChecking=no ${{ secrets.STAGE_USER }}@${{ secrets.STAGE_HOST }} "bash -c 'export MYSQL_ROOT_PASSWORD=\$(echo -n $ENCODED_MYSQL_ROOT_PASSWORD | base64 --decode); export MYSQL_PASSWORD=\$(echo -n $ENCODED_MYSQL_PASSWORD | base64 --decode); docker login albatrozcr.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }} && docker pull albatrozcr.azurecr.io/albatroz-backend_code_stage:latest && docker pull albatrozcr.azurecr.io/albatroz-frontend_code:latest && docker pull albatrozcr.azurecr.io/albatroz-nginx:latest && docker pull albatrozcr.azurecr.io/albatroz-nginx-proxy:latest && docker pull albatrozcr.azurecr.io/albatroz-letsencrypt:latest && docker-compose -f ~/docker-compose.stage.yml up -d --force-recreate'"
